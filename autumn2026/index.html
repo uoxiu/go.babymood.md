@@ -1,0 +1,791 @@
+<title>Colecția Babymood Autumn 2026</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Ajută-ne să alegem Colecția Babymood Autumn 2026 — completează chestionarul în 2-3 minute.">
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --bg:#FBF9F5;
+    --surface:#FFFFFF;
+    --card:#F6F2EA;
+    --card-border:#E8E1D4;
+    --ink:#2B2A27;
+    --muted:#8A8477;
+    --accent:#93B79B;
+    --accent-ink:#2F4A38;
+    --accent-tint:#EAF2EC;
+    --danger:#C97B63;
+    --radius:14px;
+    --safe-t:env(safe-area-inset-top);
+    --safe-b:env(safe-area-inset-bottom);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior-y:none;
+  }
+  #app{
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+  }
+  .topbar{
+    padding:calc(14px + var(--safe-t)) 20px 12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .brand{
+    font-size:13px;
+    letter-spacing:.14em;
+    font-weight:600;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+  .progress-track{
+    position:relative;
+    height:3px;
+    background:var(--card-border);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    position:absolute;
+    inset:0 auto 0 0;
+    width:0%;
+    background:var(--accent);
+    transition:width .35s ease;
+  }
+  .stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:8px 20px 24px;
+    max-width:560px;
+    width:100%;
+    margin:0 auto;
+  }
+  .step{
+    animation:fadein .32s ease both;
+  }
+  @keyframes fadein{
+    from{opacity:0; transform:translateY(8px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .qnum{
+    font-size:13px;
+    color:var(--muted);
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  h1.title{
+    font-size:26px;
+    line-height:1.28;
+    font-weight:600;
+    margin:0 0 6px;
+    letter-spacing:-.01em;
+  }
+  h1.title.welcome{
+    font-size:28px;
+  }
+  p.subtitle{
+    font-size:15px;
+    color:var(--muted);
+    margin:0 0 20px;
+    line-height:1.5;
+  }
+  p.body-text{
+    font-size:16px;
+    line-height:1.6;
+    color:var(--ink);
+    margin:0 0 28px;
+    white-space:pre-line;
+  }
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-top:6px;
+  }
+  .opt{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    text-align:left;
+    padding:14px 16px;
+    min-height:52px;
+    background:var(--card);
+    border:1.5px solid var(--card-border);
+    border-radius:var(--radius);
+    font-size:16px;
+    color:var(--ink);
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .opt:active{transform:scale(.99);}
+  .opt.selected{
+    border-color:var(--accent);
+    background:var(--accent-tint);
+  }
+  .opt .key{
+    flex:0 0 auto;
+    width:28px;
+    height:28px;
+    border-radius:8px;
+    background:var(--surface);
+    border:1.5px solid var(--card-border);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:13px;
+    font-weight:600;
+    color:var(--muted);
+  }
+  .opt.selected .key{
+    border-color:var(--accent);
+    color:var(--accent-ink);
+    background:#fff;
+  }
+  .opt .label{flex:1;}
+  .opt.other-input{
+    padding:10px 12px;
+  }
+  .opt.other-input input{
+    flex:1;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-size:16px;
+    color:var(--ink);
+    font-family:inherit;
+    min-width:0;
+  }
+
+  .image-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:6px;
+  }
+  .image-grid.count-3{grid-template-columns:1fr 1fr;}
+  .img-opt{
+    position:relative;
+    border-radius:var(--radius);
+    overflow:hidden;
+    border:1.5px solid var(--card-border);
+    cursor:pointer;
+    background:var(--card);
+    -webkit-tap-highlight-color:transparent;
+    transition:border-color .15s ease;
+  }
+  .img-opt img{
+    display:block;
+    width:100%;
+    aspect-ratio:3/4;
+    object-fit:cover;
+  }
+  .img-opt.selected{border-color:var(--accent);}
+  .img-opt .key{
+    position:absolute;
+    top:8px;
+    left:8px;
+    width:26px;
+    height:26px;
+    border-radius:7px;
+    background:rgba(255,255,255,.92);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:700;
+    color:var(--muted);
+  }
+  .img-opt.selected .key{
+    color:var(--accent-ink);
+    box-shadow:0 0 0 1.5px var(--accent) inset;
+  }
+  .img-opt.selected::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg, rgba(147,183,155,0) 60%, rgba(147,183,155,.28) 100%);
+    pointer-events:none;
+  }
+
+  textarea.answer-input{
+    width:100%;
+    border:1.5px solid var(--card-border);
+    border-radius:var(--radius);
+    background:var(--card);
+    padding:14px 16px;
+    font-size:16px;
+    font-family:inherit;
+    color:var(--ink);
+    resize:none;
+    min-height:56px;
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  textarea.answer-input:focus{border-color:var(--accent);}
+
+  .hint{
+    font-size:12.5px;
+    color:var(--muted);
+    margin-top:10px;
+  }
+
+  .actions{
+    margin-top:22px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+  button.primary{
+    appearance:none;
+    border:none;
+    background:var(--ink);
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+    padding:13px 22px;
+    border-radius:10px;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  button.primary:disabled{
+    background:var(--card-border);
+    color:var(--muted);
+    cursor:not-allowed;
+  }
+  button.link{
+    appearance:none;
+    border:none;
+    background:none;
+    color:var(--muted);
+    font-size:14px;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:8px 0;
+  }
+  .error-msg{
+    font-size:13px;
+    color:var(--danger);
+    margin-top:10px;
+    display:none;
+  }
+  .error-msg.show{display:block;}
+
+  .welcome-emoji{font-size:34px; margin-bottom:14px;}
+
+  .bottom-nav{
+    padding:10px 20px calc(16px + var(--safe-b));
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+  }
+  .nav-btn{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    border:1.5px solid var(--card-border);
+    background:var(--surface);
+    color:var(--muted);
+    font-size:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .nav-btn:disabled{opacity:.35; cursor:default;}
+
+  .thankyou{text-align:left;}
+  .thankyou .check{
+    width:52px;height:52px;border-radius:50%;
+    background:var(--accent-tint);
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:18px;
+    color:var(--accent-ink);
+    font-size:24px;
+  }
+  .sync-note{
+    font-size:12.5px;
+    color:var(--muted);
+    margin-top:18px;
+  }
+</style>
+
+<div id="app"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ===================== CONFIG ===================== */
+  /* Fill these in after running supabase.sql — Project Settings → API. */
+  var SUPABASE_URL = "https://vgvbyphirxegrihrqxmr.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_OJVKx7_de_k-HtI6mJOMzQ_eUiMTKqc";
+  var SUPABASE_TABLE = "autumn_survey_responses";
+  /* ==================================================== */
+
+  var STORAGE_KEY = "bm_autumn_survey_2026";
+
+  var WELCOME = {
+    type: "welcome",
+    emoji: "🍂",
+    title: "Ajută-ne să alegem Colecția Babymood Autumn 2026",
+    body: "💛 Pregătim colecția de toamnă Babymood și ne-ar plăcea să o construim împreună cu voi.\n\nCompletați acest chestionar (2-3 minute), iar în funcție de răspunsuri vom alege modelele și culorile pe care le vom aduce.",
+    cta: "Start"
+  };
+
+  var QUESTIONS = [
+    { id:"varsta", num:1, type:"single", title:"Câți ani are copilul tău?", required:true,
+      options:[
+        {key:"A",label:"0-1"},{key:"B",label:"1-2"},{key:"C",label:"2-3"},
+        {key:"D",label:"3-4"},{key:"E",label:"4-5"},{key:"F",label:"peste 5 ani"}
+      ]},
+    { id:"cumparator", num:2, type:"single", title:"Pentru cine cumperi cel mai des?", required:true,
+      options:[
+        {key:"A",label:"👧 Fată"},{key:"B",label:"👦 Băiat"},{key:"C",label:"Amândoi"}
+      ]},
+    { id:"culori", num:3, type:"multi", title:"Ce culori ai cumpăra?", subtitle:"Alege oricâte vrei", required:true, other:true,
+      options:[
+        {key:"A",label:"Alb"},{key:"B",label:"Crem"},{key:"C",label:"Maro"},{key:"D",label:"Roz pudrat"},
+        {key:"E",label:"Bleumarin"},{key:"F",label:"Gri"},{key:"G",label:"Denim"},{key:"H",label:"Verde olive"},
+        {key:"I",label:"Galben"},{key:"J",label:"Roșu"}
+      ]},
+    { id:"bluza", num:4, type:"image", title:"Care dintre aceste bluze îți place cel mai mult?", required:true,
+      options:[
+        {key:"A",img:"assets/q4_a.jpg"},{key:"B",img:"assets/q4_b.jpg"},
+        {key:"C",img:"assets/q4_c.jpg"},{key:"D",img:"assets/q4_d.jpg"}
+      ]},
+    { id:"pantaloni", num:5, type:"image", title:"Alege pantalonii preferați", required:true,
+      options:[{key:"A",img:"assets/q5_a.jpg"},{key:"B",img:"assets/q5_b.jpg"}]},
+    { id:"camasa", num:6, type:"image", title:"Ce cămașă îți place?", required:true,
+      options:[{key:"A",img:"assets/q6_a.jpg"},{key:"B",img:"assets/q6_b.jpg"}]},
+    { id:"rochie", num:7, type:"image", title:"Care rochie ai cumpăra?", required:true,
+      options:[{key:"A",img:"assets/q7_a.jpg"},{key:"B",img:"assets/q7_b.jpg"}]},
+    { id:"bluza_maneca_lunga", num:8, type:"image", title:"Ce bluză cu mânecă lungă îți place?", required:true,
+      options:[
+        {key:"A",img:"assets/q8_a.jpg"},{key:"B",img:"assets/q8_b.jpg"},
+        {key:"C",img:"assets/q8_c.jpg"},{key:"D",img:"assets/q8_d.jpg"}
+      ]},
+    { id:"geaca", num:9, type:"image", title:"Ce geacă ai cumpăra?", required:true,
+      options:[{key:"A",img:"assets/q9_a.jpg"},{key:"B",img:"assets/q9_b.jpg"},{key:"C",img:"assets/q9_c.jpg"}]},
+    { id:"mod_cumparare", num:10, type:"multi", title:"Cum preferi să cumperi?", subtitle:"Alege oricâte vrei", required:true,
+      options:[
+        {key:"A",label:"Produse individuale"},{key:"B",label:"Outfit complet"},{key:"C",label:"Bundle cu reducere"}
+      ]},
+    { id:"produs_dorit", num:11, type:"text", title:"Ce produs ai cumpăra imediat dacă l-am aduce?", required:false, multiline:true },
+    { id:"contact", num:12, type:"text", isLast:true, required:false,
+      title:"🤍 Vrei să fii printre primii care află când lansăm Colecția Babymood Autumn 2026?",
+      subtitle:"Lasă-ne datele tale și îți vom trimite un mesaj imediat ce colecția ajunge.",
+      placeholder:"Nume, Prenume și Telefon" }
+  ];
+
+  var TOTAL_Q = QUESTIONS.length;
+  var STEPS = [WELCOME].concat(QUESTIONS).concat([{type:"thankyou"}]);
+
+  /* ===================== STATE ===================== */
+  var state = loadState();
+
+  function defaultState(){
+    return {
+      stepIndex: 0,
+      answers: {},
+      sessionId: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2)),
+      submitted: false,
+      pendingSync: false
+    };
+  }
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return defaultState();
+      var parsed = JSON.parse(raw);
+      if(!parsed || typeof parsed !== "object") return defaultState();
+      var d = defaultState();
+      return {
+        stepIndex: typeof parsed.stepIndex === "number" ? parsed.stepIndex : d.stepIndex,
+        answers: parsed.answers || {},
+        sessionId: parsed.sessionId || d.sessionId,
+        submitted: !!parsed.submitted,
+        pendingSync: !!parsed.pendingSync
+      };
+    }catch(e){
+      return defaultState();
+    }
+  }
+
+  function save(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  }
+
+  if(state.submitted){
+    state.stepIndex = STEPS.length - 1;
+  }
+
+  /* ===================== RENDER ===================== */
+  var app = document.getElementById("app");
+
+  function currentStep(){ return STEPS[state.stepIndex]; }
+
+  function progressPercent(){
+    var step = currentStep();
+    if(step.type === "welcome") return 0;
+    if(step.type === "thankyou") return 100;
+    return Math.round(((step.num - 1) / TOTAL_Q) * 100);
+  }
+
+  function el(tag, attrs, children){
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    for(var k in attrs){
+      if(k === "class") e.className = attrs[k];
+      else if(k === "html") e.innerHTML = attrs[k];
+      else if(k.indexOf("on") === 0) e.addEventListener(k.slice(2), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    }
+    (children||[]).forEach(function(c){
+      if(c) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+    return e;
+  }
+
+  function render(){
+    app.innerHTML = "";
+    var step = currentStep();
+
+    var topbar = el("div", {class:"topbar"}, [
+      el("div", {class:"brand"}, ["BABYMOOD"])
+    ]);
+    var track = el("div", {class:"progress-track"});
+    var fill = el("div", {class:"progress-fill"});
+    fill.style.width = progressPercent() + "%";
+    track.appendChild(fill);
+
+    var wrap = el("div", {}, [topbar, track]);
+    app.appendChild(wrap);
+
+    var stage = el("div", {class:"stage"});
+    var stepEl = el("div", {class:"step"});
+
+    if(step.type === "welcome") renderWelcome(stepEl);
+    else if(step.type === "thankyou") renderThankyou(stepEl);
+    else renderQuestion(stepEl, step);
+
+    stage.appendChild(stepEl);
+    app.appendChild(stage);
+
+    if(step.type !== "welcome" && step.type !== "thankyou"){
+      app.appendChild(renderBottomNav());
+    }
+  }
+
+  function renderWelcome(container){
+    container.appendChild(el("div", {class:"welcome-emoji"}, [WELCOME.emoji]));
+    container.appendChild(el("h1", {class:"title welcome"}, [WELCOME.title]));
+    container.appendChild(el("p", {class:"body-text"}, [WELCOME.body]));
+    var btn = el("button", {class:"primary", onclick:function(){ goNext(); }}, [WELCOME.cta]);
+    container.appendChild(el("div", {class:"actions"}, [btn]));
+  }
+
+  function renderThankyou(container){
+    container.appendChild(el("div", {class:"check"}, ["✓"]));
+    container.appendChild(el("h1", {class:"title"}, ["Mulțumim"]));
+    container.appendChild(el("p", {class:"body-text"}, [
+      "Răspunsurile tale ne ajută să alegem exact ce aducem în colecția de toamnă.\n\nDacă ai lăsat un număr de telefon, te anunțăm noi primii cum ajunge colecția."
+    ]));
+    if(state.pendingSync){
+      container.appendChild(el("p", {class:"sync-note"}, ["Se sincronizează răspunsul în fundal — nu trebuie să faci nimic, o reîncercăm automat."]));
+    }
+    var reset = el("button", {class:"link", onclick:function(){
+      localStorage.removeItem(STORAGE_KEY);
+      state = defaultState();
+      render();
+    }}, ["Completează un nou răspuns"]);
+    container.appendChild(el("div", {class:"actions"}, [reset]));
+  }
+
+  function renderQuestion(container, step){
+    container.appendChild(el("div", {class:"qnum"}, ["Întrebarea " + step.num + " din " + TOTAL_Q]));
+    container.appendChild(el("h1", {class:"title"}, [step.title]));
+    if(step.subtitle) container.appendChild(el("p", {class:"subtitle"}, [step.subtitle]));
+
+    var errorMsg = el("p", {class:"error-msg"}, ["Alege un răspuns ca să continui."]);
+
+    if(step.type === "single") renderSingle(container, step);
+    else if(step.type === "multi") renderMulti(container, step);
+    else if(step.type === "image") renderImage(container, step);
+    else if(step.type === "text") renderText(container, step);
+
+    container.appendChild(errorMsg);
+    container._errorMsg = errorMsg;
+  }
+
+  function markInvalid(container){
+    if(container._errorMsg) container._errorMsg.classList.add("show");
+  }
+  function clearInvalid(container){
+    if(container._errorMsg) container._errorMsg.classList.remove("show");
+  }
+
+  function renderSingle(container, step){
+    var current = state.answers[step.id];
+    var list = el("div", {class:"options"});
+    step.options.forEach(function(opt){
+      var isSel = current === opt.label;
+      var btn = el("button", {class:"opt" + (isSel?" selected":""), onclick:function(){
+        state.answers[step.id] = opt.label;
+        save();
+        clearInvalid(container);
+        setTimeout(function(){ goNext(); }, 220);
+        render();
+      }}, [
+        el("span", {class:"key"}, [opt.key]),
+        el("span", {class:"label"}, [opt.label])
+      ]);
+      list.appendChild(btn);
+    });
+    container.appendChild(list);
+  }
+
+  function renderMulti(container, step){
+    var current = state.answers[step.id] || [];
+    var otherVal = state.answers[step.id + "_other"] || "";
+    var list = el("div", {class:"options"});
+
+    step.options.forEach(function(opt){
+      var isSel = current.indexOf(opt.label) !== -1;
+      var btn = el("button", {class:"opt" + (isSel?" selected":""), onclick:function(){
+        var arr = state.answers[step.id] || [];
+        var idx = arr.indexOf(opt.label);
+        if(idx === -1) arr.push(opt.label); else arr.splice(idx,1);
+        state.answers[step.id] = arr;
+        save();
+        clearInvalid(container);
+        render();
+      }}, [
+        el("span", {class:"key"}, [opt.key]),
+        el("span", {class:"label"}, [opt.label])
+      ]);
+      list.appendChild(btn);
+    });
+
+    if(step.other){
+      var otherSelected = otherVal.length > 0;
+      var otherRow = el("div", {class:"opt other-input" + (otherSelected?" selected":"")});
+      otherRow.appendChild(el("span", {class:"key"}, ["+"]));
+      var input = el("input", {
+        type:"text", placeholder:"Altă culoare",
+        value: otherVal,
+        oninput: function(e){
+          state.answers[step.id + "_other"] = e.target.value;
+          save();
+          clearInvalid(container);
+        }
+      });
+      otherRow.appendChild(input);
+      list.appendChild(otherRow);
+    }
+
+    container.appendChild(list);
+
+    var continueBtn = el("button", {class:"primary", onclick:function(){
+      var arr = state.answers[step.id] || [];
+      var other = (state.answers[step.id + "_other"] || "").trim();
+      if(step.required && arr.length === 0 && !other){
+        markInvalid(container);
+        return;
+      }
+      if(other && arr.indexOf(other) === -1) arr.push(other);
+      state.answers[step.id] = arr;
+      save();
+      goNext();
+    }}, ["Continuă"]);
+    container.appendChild(el("div", {class:"actions"}, [continueBtn]));
+  }
+
+  function renderImage(container, step){
+    var current = state.answers[step.id];
+    var grid = el("div", {class:"image-grid count-" + step.options.length});
+    step.options.forEach(function(opt){
+      var isSel = current === opt.key;
+      var card = el("div", {class:"img-opt" + (isSel?" selected":""), onclick:function(){
+        state.answers[step.id] = opt.key;
+        save();
+        clearInvalid(container);
+        setTimeout(function(){ goNext(); }, 220);
+        render();
+      }}, [
+        el("img", {src:opt.img, alt:step.title + " — varianta " + opt.key, loading:"lazy"}),
+        el("span", {class:"key"}, [opt.key])
+      ]);
+      grid.appendChild(card);
+    });
+    container.appendChild(grid);
+  }
+
+  function renderText(container, step){
+    var current = state.answers[step.id] || "";
+    var textarea = el("textarea", {
+      class:"answer-input",
+      rows: 1,
+      placeholder: step.placeholder || "Scrie aici...",
+      oninput: function(e){
+        e.target.style.height = "auto";
+        e.target.style.height = e.target.scrollHeight + "px";
+      },
+      onkeydown: function(e){
+        if(e.key === "Enter" && !e.shiftKey){
+          e.preventDefault();
+          handleTextAdvance();
+        }
+      }
+    });
+    textarea.value = current;
+    container.appendChild(textarea);
+    setTimeout(function(){
+      textarea.style.height = "auto";
+      textarea.style.height = textarea.scrollHeight + "px";
+    }, 0);
+
+    function handleTextAdvance(){
+      state.answers[step.id] = textarea.value.trim();
+      save();
+      if(step.isLast) submitSurvey();
+      else goNext();
+    }
+
+    var btn = el("button", {class:"primary", onclick:handleTextAdvance}, [step.isLast ? "Trimite" : "Continuă"]);
+    var actions = el("div", {class:"actions"}, [btn]);
+    if(!step.required){
+      actions.appendChild(el("button", {class:"link", onclick:function(){
+        state.answers[step.id] = textarea.value.trim();
+        save();
+        if(step.isLast) submitSurvey(); else goNext();
+      }}, ["Sari peste"]));
+    }
+    container.appendChild(actions);
+    container.appendChild(el("p", {class:"hint"}, ["Shift + Enter pentru linie nouă"]));
+  }
+
+  function renderBottomNav(){
+    var nav = el("div", {class:"bottom-nav"});
+    var up = el("button", {class:"nav-btn", onclick:function(){ goPrev(); }, html:"&#8593;"});
+    var down = el("button", {class:"nav-btn", onclick:function(){ goNext(); }, html:"&#8595;"});
+    if(state.stepIndex <= 0) up.disabled = true;
+    nav.appendChild(up);
+    nav.appendChild(down);
+    return nav;
+  }
+
+  /* ===================== NAVIGATION ===================== */
+  function isAnswered(step){
+    if(!step.required) return true;
+    var v = state.answers[step.id];
+    if(step.type === "multi"){
+      var other = (state.answers[step.id + "_other"] || "").trim();
+      return (v && v.length > 0) || !!other;
+    }
+    return v !== undefined && v !== null && v !== "";
+  }
+
+  function goNext(){
+    var step = currentStep();
+    if(step.type !== "welcome" && step.type !== "thankyou" && !isAnswered(step)){
+      render();
+      var stepEl = document.querySelector(".step");
+      if(stepEl && stepEl._errorMsg) stepEl._errorMsg.classList.add("show");
+      return;
+    }
+    if(state.stepIndex < STEPS.length - 1){
+      state.stepIndex++;
+      save();
+      render();
+      window.scrollTo(0,0);
+    }
+  }
+
+  function goPrev(){
+    if(state.stepIndex > 0){
+      state.stepIndex--;
+      save();
+      render();
+      window.scrollTo(0,0);
+    }
+  }
+
+  /* ===================== SUBMIT ===================== */
+  function buildPayload(){
+    var answers = {};
+    QUESTIONS.forEach(function(q){
+      if(q.id === "contact") return;
+      answers[q.id] = state.answers[q.id] !== undefined ? state.answers[q.id] : null;
+      if(q.other){
+        answers[q.id + "_other"] = state.answers[q.id + "_other"] || null;
+      }
+    });
+    return {
+      session_id: state.sessionId,
+      answers: answers,
+      contact: state.answers.contact || null
+    };
+  }
+
+  function submitSurvey(){
+    state.submitted = true;
+    state.pendingSync = true;
+    state.stepIndex = STEPS.length - 1;
+    save();
+    render();
+    trySync();
+  }
+
+  function trySync(){
+    if(!state.submitted) return;
+    if(SUPABASE_URL.indexOf("YOUR-PROJECT") !== -1){
+      // Not configured yet — keep the answer safe in localStorage until it is.
+      return;
+    }
+    var payload = buildPayload();
+    fetch(SUPABASE_URL + "/rest/v1/" + SUPABASE_TABLE, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify([payload])
+    }).then(function(res){
+      // 409 = duplicate session_id, i.e. a retry of an already-saved
+      // submission (see supabase.sql for why this is a plain insert
+      // rather than an upsert). Either way the data is safely stored.
+      state.pendingSync = !(res.ok || res.status === 409);
+      save();
+      if(currentStep().type === "thankyou") render();
+    }).catch(function(){
+      state.pendingSync = true;
+      save();
+    });
+  }
+
+  window.addEventListener("online", trySync);
+
+  /* ===================== INIT ===================== */
+  render();
+  if(state.submitted && state.pendingSync) trySync();
+
+})();
+</script>
