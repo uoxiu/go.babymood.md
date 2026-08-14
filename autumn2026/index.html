@@ -334,7 +334,7 @@
   /* Fill these in after running supabase.sql — Project Settings → API. */
   var SUPABASE_URL = "https://vgvbyphirxegrihrqxmr.supabase.co";
   var SUPABASE_ANON_KEY = "sb_publishable_OJVKx7_de_k-HtI6mJOMzQ_eUiMTKqc";
-  var SUPABASE_TABLE = "autumn_survey_responses";
+  var SUPABASE_PROGRESS_RPC = "save_survey_progress";
   /* ==================================================== */
 
   var STORAGE_KEY = "bm_autumn_survey_2026";
@@ -404,7 +404,8 @@
       answers: {},
       sessionId: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2)),
       submitted: false,
-      pendingSync: false
+      pendingSync: false,
+      progressStep: 0 // highest question num (1-12) saved to Supabase so far
     };
   }
 
@@ -420,7 +421,8 @@
         answers: parsed.answers || {},
         sessionId: parsed.sessionId || d.sessionId,
         submitted: !!parsed.submitted,
-        pendingSync: !!parsed.pendingSync
+        pendingSync: !!parsed.pendingSync,
+        progressStep: typeof parsed.progressStep === "number" ? parsed.progressStep : d.progressStep
       };
     }catch(e){
       return defaultState();
@@ -709,11 +711,19 @@
       if(stepEl && stepEl._errorMsg) stepEl._errorMsg.classList.add("show");
       return;
     }
+    var leavingQuestionNum = (step.type !== "welcome" && step.type !== "thankyou") ? step.num : null;
     if(state.stepIndex < STEPS.length - 1){
       state.stepIndex++;
       save();
       render();
       window.scrollTo(0,0);
+      // Fire-and-forget: save progress so far so an abandoned session is
+      // still findable, without blocking navigation on the network.
+      if(leavingQuestionNum !== null){
+        state.progressStep = leavingQuestionNum;
+        save();
+        syncProgress();
+      }
     }
   }
 
@@ -726,8 +736,8 @@
     }
   }
 
-  /* ===================== SUBMIT ===================== */
-  function buildPayload(){
+  /* ===================== PROGRESS SYNC / SUBMIT ===================== */
+  function buildAnswersPayload(){
     var answers = {};
     QUESTIONS.forEach(function(q){
       if(q.id === "contact") return;
@@ -736,43 +746,48 @@
         answers[q.id + "_other"] = state.answers[q.id + "_other"] || null;
       }
     });
-    return {
-      session_id: state.sessionId,
-      answers: answers,
-      contact: state.answers.contact || null
-    };
+    return answers;
   }
 
   function submitSurvey(){
     state.submitted = true;
-    state.pendingSync = true;
+    state.progressStep = TOTAL_Q;
     state.stepIndex = STEPS.length - 1;
     save();
     render();
-    trySync();
+    syncProgress();
   }
 
-  function trySync(){
-    if(!state.submitted) return;
+  // Saves however much of the survey is filled in so far — called after
+  // every question (so an abandoned session is still findable by
+  // progressStep/updated_at) and on final submit (submitted:true). Calls
+  // a SECURITY DEFINER RPC rather than the table directly: it can create
+  // or update the row without ever granting anon SELECT/UPDATE access
+  // (see supabase.sql for why a plain UPDATE policy alone doesn't work).
+  function syncProgress(){
+    if(state.progressStep <= 0) return;
     if(SUPABASE_URL.indexOf("YOUR-PROJECT") !== -1){
       // Not configured yet — keep the answer safe in localStorage until it is.
       return;
     }
-    var payload = buildPayload();
-    fetch(SUPABASE_URL + "/rest/v1/" + SUPABASE_TABLE, {
+    state.pendingSync = true;
+    save();
+    fetch(SUPABASE_URL + "/rest/v1/rpc/" + SUPABASE_PROGRESS_RPC, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "apikey": SUPABASE_ANON_KEY,
-        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
-        "Prefer": "return=minimal"
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY
       },
-      body: JSON.stringify([payload])
+      body: JSON.stringify({
+        p_session_id: state.sessionId,
+        p_answers: buildAnswersPayload(),
+        p_current_step: state.progressStep,
+        p_submitted: state.submitted,
+        p_contact: state.answers.contact || null
+      })
     }).then(function(res){
-      // 409 = duplicate session_id, i.e. a retry of an already-saved
-      // submission (see supabase.sql for why this is a plain insert
-      // rather than an upsert). Either way the data is safely stored.
-      state.pendingSync = !(res.ok || res.status === 409);
+      state.pendingSync = !res.ok;
       save();
       if(currentStep().type === "thankyou") render();
     }).catch(function(){
@@ -781,11 +796,11 @@
     });
   }
 
-  window.addEventListener("online", trySync);
+  window.addEventListener("online", syncProgress);
 
   /* ===================== INIT ===================== */
   render();
-  if(state.submitted && state.pendingSync) trySync();
+  if(state.pendingSync) syncProgress();
 
 })();
 </script>
