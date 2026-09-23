@@ -2,6 +2,22 @@
 <html lang="ro">
 <head>
 <meta charset="utf-8">
+<script>
+  // This storefront is built for phones: desktop visitors go to the main site, to the same product when
+  // the link points to one. iPads report a Mac user agent, so touch + coarse pointer also counts as mobile.
+  // Add ?preview to the URL to open it on desktop anyway.
+  (function () {
+    var ua = navigator.userAgent;
+    var mobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) ||
+      (navigator.maxTouchPoints > 1 && matchMedia('(pointer: coarse)').matches);
+    if (mobile || /[?&]preview\b/.test(location.search)) return;
+    var h = decodeURIComponent(location.hash.slice(1));
+    var m = h.match(/^(?:t=[^/]+\/)?([^=/]+)$/);
+    var path = h === 'colectii' || /^t=[^/]+\/?$/.test(h) ? '/collections/all'
+      : m && h ? '/products/' + encodeURIComponent(m[1]) : '/';
+    location.replace('https://babymood.md' + path);
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <title>BabyMood</title>
