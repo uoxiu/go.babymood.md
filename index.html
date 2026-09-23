@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>BabyMood</title>
+<link rel="preconnect" href="https://babymood.md">
+<link rel="preconnect" href="https://cdn.shopify.com">
+<style>
+  :root {
+    --bg: #000;
+    --fg: #fff;
+    --dim: rgba(255,255,255,.72);
+    --accent: #fe2c55;
+    --sheet: #fff;
+    --ink: #161823;
+    --mute: #8a8b91;
+    --line: #e3e3e4;
+    --off: #c4c4c7;
+    --chip: #f1f1f2;
+    --safe-b: env(safe-area-inset-bottom);
+    --safe-t: env(safe-area-inset-top);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--fg); overflow: hidden; }
+  body { font: 15px/1.35 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  svg { display: block; }
+
+  #app { position: fixed; inset: 0; }
+  @media (min-width: 700px) { #app { left: 50%; right: auto; width: 440px; transform: translateX(-50%); } }
+
+  /* top bar */
+  .top {
+    position: absolute; inset: 0 0 auto; z-index: 10; padding: calc(var(--safe-t) + 10px) 14px 10px;
+    display: flex; align-items: center; justify-content: center; pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0,0,0,.35);
+  }
+  .bag-top { position: absolute; right: 12px; top: calc(var(--safe-t) + 4px); padding: 6px; pointer-events: auto; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+  .badge { position: absolute; top: 0; right: -2px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--accent); font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+  .badge:empty { display: none; }
+
+  /* vertical feed */
+  #feed { position: absolute; inset: 0; overflow-y: scroll; scroll-snap-type: y mandatory; overscroll-behavior-y: contain; scrollbar-width: none; }
+  #feed::-webkit-scrollbar, .gallery::-webkit-scrollbar { display: none; }
+  .item { position: relative; height: 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow: clip; background: #111; }
+
+  /* horizontal photos, full bleed */
+  .gallery { position: absolute; inset: 0; display: flex; overflow-x: scroll; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; }
+  .gallery img { flex: 0 0 100%; width: 100%; height: 100%; object-fit: cover; scroll-snap-align: center; user-select: none; -webkit-user-drag: none; }
+  .shade { position: absolute; inset: auto 0 0; height: 62%; background: linear-gradient(transparent, rgba(0,0,0,.35) 35%, rgba(0,0,0,.72)); pointer-events: none; }
+  .shade.top-s { inset: 0 0 auto; height: 18%; background: linear-gradient(rgba(0,0,0,.35), transparent); }
+
+  /* photo counter segments (TikTok photo mode), under the top bar */
+  .segs { position: absolute; left: 12px; right: 12px; top: calc(var(--safe-t) + 50px); display: flex; gap: 4px; pointer-events: none; }
+  .segs i { flex: 1; height: 2px; border-radius: 1px; background: rgba(255,255,255,.35); }
+  .segs i.on { background: var(--fg); }
+
+  /* product block, bottom (brand, title, price, variants, actions) */
+  .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 16px calc(var(--safe-b) + 18px); display: grid; gap: 10px; }
+  /* the overlay lets touches through to the photos; only the controls catch them,
+     and pan-y hands their horizontal drags to JS (swipeProxy) while vertical stays native */
+  .cap, .side { pointer-events: none; }
+  .cap button, .side button { pointer-events: auto; touch-action: pan-y; }
+  .brand { font-size: 12px; font-weight: 500; letter-spacing: .32em; color: rgba(255,255,255,.85); }
+  .ttl { font-size: 24px; line-height: 1.15; font-weight: 700; letter-spacing: -.01em; max-width: 78%; text-shadow: 0 1px 12px rgba(0,0,0,.25); }
+  .prc { font-size: 17px; font-weight: 500; letter-spacing: .03em; text-transform: uppercase; margin-top: -2px; display: flex; align-items: baseline; gap: 10px; }
+  .prc s { font-size: 15px; font-weight: 400; color: rgba(255,255,255,.6); text-decoration-thickness: 1px; }
+  .sws { display: flex; gap: 12px; margin-top: 4px; padding-right: 90px; }
+  .sw { width: 40px; height: 40px; border-radius: 50%; background: var(--c); border: 2px solid rgba(0,0,0,.35); box-shadow: 0 0 0 1px rgba(255,255,255,.45); position: relative; }
+  .sw.on { box-shadow: 0 0 0 2.5px #fff; border-color: rgba(0,0,0,.5); }
+  .sw:disabled { opacity: .4; }
+  .sw:disabled::after { content: ""; position: absolute; left: 50%; top: 3px; bottom: 3px; width: 1.5px; background: #fff; transform: rotate(45deg); }
+  .szs { display: flex; gap: 8px; padding-right: 90px; }
+  .sz { flex: 1 1 0; max-width: 70px; height: 36px; border-radius: 9px; border: 1px solid rgba(255,255,255,.45); background: rgba(0,0,0,.18); font-size: 15px; font-weight: 500; }
+  .sz.on { background: #fff; color: #111; border-color: #fff; font-weight: 700; }
+  .sz:disabled { color: rgba(255,255,255,.35); border-color: rgba(255,255,255,.18); text-decoration: line-through; }
+  .need { animation: need .45s; }
+  @keyframes need { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+  .acts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
+  .acts button { height: 50px; border-radius: 14px; font-size: 16px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+  .add { border: 1px solid rgba(255,255,255,.55); background: rgba(0,0,0,.25); }
+  .now { background: #fff; color: #111; }
+  .acts button:disabled { opacity: .5; }
+
+  /* right side: details, share, and the heart in a circle */
+  .side { position: absolute; right: 14px; bottom: calc(var(--safe-b) + 90px); display: grid; gap: 16px; justify-items: center; }
+  .side .more, .side .share { display: grid; justify-items: center; gap: 2px; font-size: 11px; font-weight: 600; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+  .side .more svg, .side .share svg { width: 28px; height: 28px; }
+  .like { width: 48px; height: 48px; display: grid; place-items: center; filter: drop-shadow(0 1px 3px rgba(0,0,0,.4)); }
+  .like svg { width: 36px; height: 36px; }
+  .like.on svg { fill: var(--accent); stroke: var(--accent); }
+  .like.pop svg { animation: pop .35s ease; }
+  @keyframes pop { 50% { transform: scale(1.3); } }
+
+  /* double-tap heart */
+  .burst { position: absolute; width: 96px; height: 96px; margin: -48px 0 0 -48px; pointer-events: none; animation: burst .8s ease forwards; }
+  .burst svg { width: 100%; height: 100%; fill: var(--accent); filter: drop-shadow(0 2px 8px rgba(0,0,0,.3)); }
+  @keyframes burst { 0% { transform: scale(.4) rotate(-12deg); opacity: 0; } 15% { transform: scale(1.1) rotate(-12deg); opacity: 1; } 30% { transform: scale(1) rotate(-12deg); } 100% { transform: translateY(-80px) scale(1.4) rotate(-12deg); opacity: 0; } }
+
+  .hint { position: absolute; left: 50%; top: 58%; transform: translateX(-50%); z-index: 5; padding: 8px 14px; border-radius: 20px; background: rgba(0,0,0,.45); font-size: 13px; pointer-events: none; transition: opacity .6s; }
+  .status { position: absolute; inset: 0; display: grid; place-items: center; color: var(--dim); }
+
+  /* bottom sheets (light, like TikTok Shop) */
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 20; }
+  .open .scrim { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 21; max-height: 82dvh; overflow-y: auto;
+    background: var(--sheet); color: var(--ink); border-radius: 14px 14px 0 0;
+    padding: 8px 16px calc(var(--safe-b) + 16px);
+    transform: translateY(100%); transition: transform .3s cubic-bezier(.2,.8,.2,1);
+  }
+  .sheet.show { transform: none; }
+  .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 12px; }
+  .sh-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; margin-bottom: 12px; }
+  .x { width: 32px; height: 32px; display: grid; place-items: center; color: var(--mute); }
+  .cta { width: 100%; height: 46px; border-radius: 4px; background: var(--accent); color: #fff; font-weight: 600; font-size: 16px; }
+  .cta:disabled { background: var(--chip); color: var(--mute); }
+  .line { display: grid; grid-template-columns: 60px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+  .line img { width: 60px; aspect-ratio: 3/4; object-fit: cover; border-radius: 4px; background: var(--chip); }
+  .line .sub { color: var(--mute); font-size: 13px; }
+  .qty { display: flex; align-items: center; gap: 10px; }
+  .qty button { width: 28px; height: 28px; border-radius: 4px; background: var(--chip); }
+  .total { display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding: 14px 0; font-weight: 700; }
+  .rich { font-size: 15px; line-height: 1.55; }
+  .rich p + p { margin-top: .8em; }
+  .empty { color: var(--mute); padding: 24px 0; text-align: center; }
+
+  .toast { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%) scale(.95); background: rgba(0,0,0,.72); color: #fff; padding: 12px 18px; border-radius: 8px; font-size: 14px; opacity: 0; transition: .2s; z-index: 30; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translate(-50%, -50%); }
+
+  /* top bar: "Toată colecția" on the main feed; back + title in the grid or a category feed */
+  .menu { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; font-size: 16px; pointer-events: auto; padding: 4px 6px; }
+  .menu svg { width: 16px; height: 16px; }
+  .ctx { display: none; align-items: center; font-weight: 600; font-size: 16px; pointer-events: auto; max-width: 70%; }
+  .ctx span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .back { position: absolute; left: 6px; top: calc(var(--safe-t) + 4px); padding: 6px; pointer-events: auto; display: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+  .filtered .menu, .grid-on .menu { display: none; }
+  .filtered .ctx, .filtered .back, .grid-on .ctx, .grid-on .back { display: flex; }
+
+  /* Colecții view */
+  #grid { position: absolute; inset: 0; overflow-y: auto; background: var(--bg); padding: calc(var(--safe-t) + 56px) 0 calc(var(--safe-b) + 24px); display: none; scrollbar-width: none; }
+  #grid::-webkit-scrollbar { display: none; }
+  .grid-on #grid { display: block; }
+  .grid-on #feed, .grid-on .hint { visibility: hidden; }
+  .grid-on .top { background: var(--bg); }
+  .sec { padding: 0 12px; margin: 6px 0 10px; font-size: 13px; font-weight: 600; color: var(--dim); }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 0 12px 12px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: 0 0 auto; height: 32px; padding: 0 14px; border-radius: 16px; background: #1f1f1f; font-size: 14px; font-weight: 500; }
+  .chip small { color: var(--mute); margin-left: 4px; }
+  .chip.on { background: var(--fg); color: #111; }
+  .thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+  .th { position: relative; aspect-ratio: 3/4; background: #1a1a1a; overflow: hidden; }
+  .th img { width: 100%; height: 100%; object-fit: cover; }
+  .th .pr { position: absolute; left: 6px; bottom: 5px; font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,.7); }
+  .th .so { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.45); font-size: 12px; font-weight: 600; }
+  .th .lk { position: absolute; right: 6px; top: 6px; width: 16px; height: 16px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="top">
+    <button class="back" id="backBtn" aria-label="Înapoi">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <button class="menu" id="menuBtn"><svg viewBox="0 0 16 16" fill="#fff"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>Toată colecția</button>
+    <div class="ctx"><span id="ctxTitle"></span></div>
+    <button class="bag-top" id="bagBtn" aria-label="Coș">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+      <span class="badge" id="badge"></span>
+    </button>
+  </div>
+  <main id="feed"></main>
+  <section id="grid" aria-label="Toată colecția"></section>
+  <div class="status" id="status">Se încarcă…</div>
+  <div class="hint" id="hint">Glisează în sus pentru mai mult</div>
+  <div class="toast" id="toast"></div>
+  <div class="scrim" id="scrim"></div>
+  <section class="sheet" id="sheet"></section>
+</div>
+
+<script>
+const SHOP = 'https://babymood.md';
+const BAG_KEY = 'bm_bag_v1';
+const LIKE_KEY = 'bm_likes_v1';
+
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const lei = n => Math.round(n) + ' lei';
+// Shopify CDN resizes (and converts HEIC to webp) via the width param
+const img = (src, w) => src + (src.includes('?') ? '&' : '?') + 'width=' + w;
+const WIDTH = Math.min(1400, Math.ceil(Math.min(innerWidth, 440) * (devicePixelRatio || 1) / 100) * 100);
+const text = html => { const d = document.createElement('div'); d.innerHTML = html; return d.textContent.replace(/\s+/g, ' ').trim(); };
+
+const ICON = {
+  heart: '<svg width="34" height="34" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="0"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.1 0 3.6 1.2 5.2 3 1.6-1.8 3.1-3 5.2-3 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z"/></svg>',
+  bagLine: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8h13l-1 12.5h-11z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>',
+  info: '<svg width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v9a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4A2.5 2.5 0 0 1 3 14.5z" transform="translate(.5 0)"/><path d="M8 8h8M8 11.5h5" stroke="#111" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  share: '<svg width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M13.5 4.5 22 12l-8.5 7.5v-4.3C8 15.2 4.6 17 2 21c.8-6.2 4.3-10.8 11.5-11.6z"/></svg>',
+  x: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+};
+
+let products = [];
+let bag = read(BAG_KEY, []);
+let likes = new Set(read(LIKE_KEY, []));
+
+function read(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }
+function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+function saveBag() {
+  write(BAG_KEY, bag);
+  const n = bag.reduce((s, l) => s + l.qty, 0);
+  $('#badge').textContent = n || '';
+}
+
+const avail = p => p.variants.some(v => v.available) ? 1 : 0;
+const realOpts = p => p.options.filter(o => !(o.values.length === 1 && o.values[0] === 'Default Title'));
+
+const minPrice = p => Math.min(...p.variants.map(v => +v.price));
+// price line: current price, plus the Shopify "compare at" price struck through when it is higher.
+// With no variant chosen yet, it shows the cheapest variant (in stock if any).
+function priceHTML(p, v) {
+  if (!v) {
+    const pool = p.variants.some(x => x.available) ? p.variants.filter(x => x.available) : p.variants;
+    v = pool.reduce((a, b) => +b.price < +a.price ? b : a);
+  }
+  const was = +v.compare_at_price;
+  return `<span>${lei(+v.price)}</span>${was > +v.price ? `<s>${lei(was)}</s>` : ''}`;
+}
+
+// Shopify product_type is empty in this store, so categories come from the first word of the title.
+const CATS = [
+  ['pantaloni', 'Pantaloni', /^pantalon/],
+  ['topuri', 'Tricouri & cămăși', /^(tricou|maiou|camas|bluz|hanorac|pulover)/],
+  ['salopete', 'Salopete & rochii', /^(salopet|rochi|body|combinezon)/],
+  ['accesorii', 'Accesorii', /^(sapc|palari|caciul|soset|esarf)/],
+];
+const fold = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const catOf = p => (CATS.find(c => c[2].test(fold(p.title))) || ['altele'])[0];
+const catLabel = k => (CATS.find(c => c[0] === k) || [k, 'Altele'])[1];
+
+async function init() {
+  saveBag();
+  try {
+    const res = await fetch(`${SHOP}/products.json?limit=250`);
+    products = (await res.json()).products.filter(p => p.images.length);
+  } catch {
+    $('#status').textContent = 'Nu am putut încărca produsele';
+    return;
+  }
+  products.sort((a, b) => avail(b) - avail(a));
+  $('#status').remove();
+  await route();
+  setTimeout(() => $('#hint').style.opacity = 0, 2500);
+  $('#feed').addEventListener('scroll', () => $('#hint').style.opacity = 0, { once: true });
+}
+
+// URL hash = where you are, so any view can be linked from an ad or story:
+//   #<product>            main feed at that product
+//   #colectii             the "Toată colecția" grid
+//   #t=<category>/<p>     feed of one category
+function parseHash() {
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (h === 'colectii') return { grid: true };
+  const m = h.match(/^(t)=([^/]+)\/?(.*)$/);
+  return m ? { ctx: { kind: m[1], key: m[2] }, handle: m[3] } : { ctx: null, handle: h };
+}
+async function route() {
+  const r = parseHash();
+  if (r.grid) return showGrid();
+  showFeed(r.ctx, r.handle);
+}
+
+function listFor(ctx) {
+  if (!ctx) return { title: '', list: products };
+  return { title: catLabel(ctx.key), list: products.filter(p => catOf(p) === ctx.key) };
+}
+
+let feedCtx = null, cur = -1, lastMainHandle = '';
+
+function showFeed(ctx, handle) {
+  let v = listFor(ctx);
+  if (!v?.list.length) { ctx = null; v = listFor(null); }
+  feedCtx = ctx;
+  const app = $('#app'), feed = $('#feed');
+  app.classList.remove('grid-on');
+  app.classList.toggle('filtered', !!ctx);
+  $('#ctxTitle').textContent = v.title;
+  feed.innerHTML = v.list.map(render).join('');
+  v.list.forEach((p, i) => wire(feed.children[i], p));
+  cur = -1;
+  feed.scrollTop = Math.max(0, v.list.findIndex(p => p.handle === handle)) * feed.clientHeight;
+  update();
+}
+
+let gridCat = '';
+function showGrid() {
+  $('#app').classList.add('grid-on');
+  $('#app').classList.remove('filtered');
+  $('#ctxTitle').textContent = 'Toată colecția';
+  history.replaceState(null, '', '#colectii');
+  renderGrid();
+}
+
+function renderGrid() {
+  const counts = {};
+  products.forEach(p => counts[catOf(p)] = (counts[catOf(p)] || 0) + 1);
+  const cats = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const shown = gridCat ? products.filter(p => catOf(p) === gridCat) : products;
+  $('#grid').innerHTML = `
+    <div class="sec">Toate piesele</div>
+    <div class="chips">
+      <button class="chip ${gridCat ? '' : 'on'}" data-cat="">Toate<small>${products.length}</small></button>
+      ${cats.map(([k, n]) => `<button class="chip ${gridCat === k ? 'on' : ''}" data-cat="${k}">${esc(catLabel(k))}<small>${n}</small></button>`).join('')}
+    </div>
+    <div class="thumbs">${shown.map(p => `<button class="th" data-p="${esc(p.handle)}">
+      <img loading="lazy" src="${esc(img(p.images[0].src, 360))}" alt="${esc(p.title)}">
+      <span class="pr">${lei(minPrice(p))}</span>
+      ${likes.has(p.handle) ? `<svg class="lk" viewBox="0 0 24 24" fill="var(--accent)"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.1 0 3.6 1.2 5.2 3 1.6-1.8 3.1-3 5.2-3 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z"/></svg>` : ''}
+      ${avail(p) ? '' : '<span class="so">Stoc epuizat</span>'}
+    </button>`).join('')}</div>`;
+}
+
+$('#grid').addEventListener('click', e => {
+  const chip = e.target.closest('[data-cat]'), th = e.target.closest('[data-p]');
+  if (chip) { gridCat = chip.dataset.cat; renderGrid(); }
+  else if (th) showFeed(gridCat ? { kind: 't', key: gridCat } : null, th.dataset.p);
+});
+$('#menuBtn').addEventListener('click', showGrid);
+// back: from the grid to the main feed where you left it; from a category feed to the grid
+$('#backBtn').addEventListener('click', () => $('#app').classList.contains('grid-on') ? showFeed(null, lastMainHandle) : showGrid());
+
+// swatch colours for the option values used in the store; unknown names fall back to grey
+const SWATCH = {
+  cream: '#ece4d2', ivory: '#f3eee1', white: '#f7f7f5', beige: '#d8c6a6', blue: '#9fb9d6', navy: '#2e3a5a',
+  grey: '#9b9b9b', gray: '#9b9b9b', brown: '#6a4a3a', pink: '#eec5cc', green: '#7e8e68', olive: '#6f7550',
+  black: '#161616', red: '#c2504b', yellow: '#ecd27a',
+};
+const isColor = o => /colo|culoare/i.test(o.name);
+const sentence = t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+
+function render(p) {
+  const opts = realOpts(p);
+  const color = opts.find(isColor);
+  const rest = opts.filter(o => o !== color);
+  const sold = !avail(p);
+  return `<article class="item" data-handle="${esc(p.handle)}">
+    <div class="gallery">${p.images.map(im => `<img alt="${esc(p.title)}" draggable="false" data-src="${esc(img(im.src, WIDTH))}">`).join('')}</div>
+    <div class="shade top-s"></div><div class="shade"></div>
+    ${p.images.length > 1 ? `<div class="segs">${p.images.map((_, j) => `<i class="${j ? '' : 'on'}"></i>`).join('')}</div>` : ''}
+    <div class="side">
+      ${p.body_html ? `<button class="more" aria-label="Detalii">${ICON.info}<span>Detalii</span></button>` : ''}
+      <button class="share" aria-label="Trimite">${ICON.share}<span>Trimite</span></button>
+      <button class="like ${likes.has(p.handle) ? 'on' : ''}" aria-label="Salvează">${ICON.heart}</button>
+    </div>
+    <div class="cap">
+      <div class="brand">BABYMOOD</div>
+      <h2 class="ttl">${esc(sentence(p.title))}</h2>
+      <div class="prc">${priceHTML(p)}</div>
+      ${color ? `<div class="sws" data-opt="${color.position}">${color.values.map(v =>
+        `<button class="sw" data-val="${esc(v)}" aria-label="${esc(v)}" style="--c:${SWATCH[fold(v)] || '#8a8a8a'}"></button>`).join('')}</div>` : ''}
+      ${rest.map(o => `<div class="szs" data-opt="${o.position}">${o.values.map(v =>
+        `<button class="sz" data-val="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
+      <div class="acts">
+        <button class="add" ${sold ? 'disabled' : ''}>${ICON.bagLine}<span>${sold ? 'Stoc epuizat' : 'Adaugă în coș'}</span></button>
+        <button class="now" ${sold ? 'disabled' : ''}>Cumpără acum</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+function wire(el, p) {
+  const opts = realOpts(p);
+  const sel = {};
+  const match = s => p.variants.filter(v => Object.entries(s).every(([pos, val]) => v['option' + pos] === val));
+  // preselect single-value options and the first colour that has stock; sizes stay a conscious choice
+  opts.forEach(o => { if (o.values.length === 1) sel[o.position] = o.values[0]; });
+  const color = opts.find(isColor);
+  if (color && !sel[color.position]) {
+    const first = color.values.find(v => match({ [color.position]: v }).some(x => x.available));
+    if (first) sel[color.position] = first;
+  }
+  const groups = [...el.querySelectorAll('[data-opt]')];
+  const pick = () => Object.keys(sel).length === opts.length ? (opts.length ? match(sel)[0] : p.variants[0]) : null;
+
+  function refresh() {
+    groups.forEach(g => {
+      const pos = g.dataset.opt;
+      g.querySelectorAll('[data-val]').forEach(b => {
+        b.classList.toggle('on', sel[pos] === b.dataset.val);
+        b.disabled = !match({ ...sel, [pos]: b.dataset.val }).some(v => v.available);
+      });
+    });
+    const v = pick();
+    $('.prc', el).innerHTML = priceHTML(p, v);
+  }
+
+  groups.forEach(g => g.addEventListener('click', e => {
+    const b = e.target.closest('[data-val]');
+    if (!b || b.disabled) return;
+    const pos = g.dataset.opt;
+    sel[pos] = b.dataset.val;
+    // the new choice may rule out what was picked in the other option: keep only the new one
+    if (!match(sel).some(v => v.available)) for (const k of Object.keys(sel)) if (k !== pos) delete sel[k];
+    refresh();
+  }));
+
+  // returns the chosen in-stock variant, or points at what is still missing
+  function chosen() {
+    const v = pick();
+    if (v?.available) return v;
+    const miss = opts.find(o => !sel[o.position]);
+    const g = miss && el.querySelector(`[data-opt="${miss.position}"]`);
+    if (g) { g.classList.remove('need'); g.offsetWidth; g.classList.add('need'); }
+    toast(miss ? (isColor(miss) ? 'Alege culoarea' : 'Alege mărimea') : 'Stoc epuizat');
+    return null;
+  }
+  function addToBag(v) {
+    const line = bag.find(l => l.id === v.id);
+    if (line) line.qty++;
+    else bag.push({ id: v.id, qty: 1, title: p.title, variant: v.title === 'Default Title' ? '' : v.title, price: +v.price, image: p.images[0].src, handle: p.handle });
+    saveBag();
+  }
+  $('.add', el).addEventListener('click', () => { const v = chosen(); if (v) { addToBag(v); toast('Adăugat în coș'); } });
+  // buy now = this piece plus whatever is already in the bag, straight to Shopify checkout
+  $('.now', el).addEventListener('click', () => { const v = chosen(); if (v) { addToBag(v); checkout(); } });
+
+  $('.more', el)?.addEventListener('click', () => openSheet(`
+    <div class="sh-head"><span>${esc(p.title)}</span><button class="x" data-close>${ICON.x}</button></div>
+    <div class="rich">${p.body_html}</div>`));
+
+  const likeBtn = $('.like', el);
+  const setLike = on => {
+    on ? likes.add(p.handle) : likes.delete(p.handle);
+    write(LIKE_KEY, [...likes]);
+    likeBtn.classList.toggle('on', on);
+    likeBtn.classList.remove('pop'); likeBtn.offsetWidth; likeBtn.classList.add('pop');
+  };
+  likeBtn.addEventListener('click', () => setLike(!likes.has(p.handle)));
+
+  $('.share', el).addEventListener('click', async () => {
+    const url = location.href.split('#')[0] + '#' + p.handle;
+    try {
+      if (navigator.share) await navigator.share({ title: p.title, url });
+      else { await navigator.clipboard.writeText(url); toast('Link copiat'); }
+    } catch {}
+  });
+
+  // double tap on the photo = save, with the heart burst
+  const gal = $('.gallery', el);
+  let lastTap = 0;
+  gal.addEventListener('pointerup', e => {
+    const now = e.timeStamp;
+    if (now - lastTap < 300) {
+      const r = el.getBoundingClientRect();
+      const b = document.createElement('div');
+      b.className = 'burst'; b.innerHTML = ICON.heart;
+      b.style.left = (e.clientX - r.left) + 'px'; b.style.top = (e.clientY - r.top) + 'px';
+      el.appendChild(b); setTimeout(() => b.remove(), 800);
+      if (!likes.has(p.handle)) setLike(true);
+      lastTap = 0;
+    } else lastTap = now;
+  });
+
+  swipeProxy(el, gal);
+
+  const segs = el.querySelectorAll('.segs i');
+  if (segs.length) gal.addEventListener('scroll', () => {
+    const k = Math.round(gal.scrollLeft / gal.clientWidth);
+    segs.forEach((s, j) => s.classList.toggle('on', j === k));
+  }, { passive: true });
+
+  refresh();
+}
+
+// A horizontal drag that starts on a button (colour, size, add, heart…) moves the photos,
+// like a swipe on the photo itself. Taps keep working; vertical drags stay native (touch-action: pan-y).
+function swipeProxy(el, gal) {
+  let id = null, x0 = 0, y0 = 0, s0 = 0, dragging = false, eatClickUntil = 0;
+  el.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' || !e.target.closest('.cap button, .side button')) return;
+    id = e.pointerId; x0 = e.clientX; y0 = e.clientY; s0 = gal.scrollLeft; dragging = false;
+  });
+  el.addEventListener('pointermove', e => {
+    if (e.pointerId !== id) return;
+    const dx = e.clientX - x0, dy = e.clientY - y0;
+    if (!dragging) {
+      if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy)) return;
+      dragging = true;
+      gal.style.scrollSnapType = 'none';   // follow the finger freely, snap on release
+    }
+    gal.scrollLeft = s0 - dx;
+  });
+  const end = e => {
+    if (e.pointerId !== id) return;
+    id = null;
+    if (!dragging) return;
+    const w = gal.clientWidth, dx = e.clientX - x0, last = gal.children.length - 1;
+    let k = Math.round(s0 / w);
+    if (Math.abs(dx) > w * 0.15) k += dx < 0 ? 1 : -1;
+    gal.style.scrollSnapType = '';
+    gal.scrollTo({ left: Math.max(0, Math.min(last, k)) * w, behavior: 'smooth' });
+    eatClickUntil = e.timeStamp + 350;     // the drag must not also count as a tap on the button
+  };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+  el.addEventListener('click', e => { if (e.timeStamp < eatClickUntil) { e.stopPropagation(); e.preventDefault(); } }, true);
+}
+
+function renderBag() {
+  const total = bag.reduce((s, l) => s + l.price * l.qty, 0);
+  return `<div class="sh-head"><span>Coș (${bag.reduce((n, l) => n + l.qty, 0)})</span><button class="x" data-close>${ICON.x}</button></div>
+    ${bag.length ? bag.map((l, i) => `<div class="line">
+      <img src="${esc(img(l.image, 200))}" alt="">
+      <div><div>${esc(l.title)}</div><div class="sub">${esc(l.variant)}</div><div class="sub">${lei(l.price)}</div></div>
+      <div class="qty"><button data-dec="${i}">−</button><span>${l.qty}</span><button data-inc="${i}">+</button></div>
+    </div>`).join('') + `
+    <div class="total"><span>Total</span><span>${lei(total)}</span></div>
+    <button class="cta" id="checkout">Finalizează comanda</button>`
+    : '<p class="empty">Coșul e gol</p>'}`;
+}
+
+function openSheet(html) {
+  const s = $('#sheet');
+  s.innerHTML = '<div class="grab"></div>' + html;
+  $('#app').classList.add('open');
+  s.offsetHeight; // commit the off-screen position so the slide-in animates
+  s.classList.add('show');
+}
+function closeSheet() {
+  $('#app').classList.remove('open');
+  $('#sheet').classList.remove('show');
+}
+
+// Load photos for the current product, the one before and the next two, so swipes never land on a blank frame.
+const loadItem = i => $('#feed').children[i]?.querySelectorAll('img[data-src]').forEach(im => { im.src = im.dataset.src; im.removeAttribute('data-src'); });
+function update() {
+  const feed = $('#feed'), items = feed.children;
+  if ($('#app').classList.contains('grid-on')) return;
+  const i = Math.round(feed.scrollTop / feed.clientHeight);
+  if (i === cur || !items[i]) return;
+  cur = i;
+  loadItem(i); loadItem(i + 1); loadItem(i + 2); loadItem(i - 1);
+  const h = items[i].dataset.handle;
+  if (!feedCtx) lastMainHandle = h;
+  history.replaceState(null, '', '#' + (feedCtx ? `${feedCtx.kind}=${feedCtx.key}/` : '') + h);
+}
+
+{
+  const feed = $('#feed');
+  let raf;
+  feed.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); }, { passive: true });
+
+  // desktop: one wheel gesture = one product (small wheel steps would snap back otherwise)
+  let wheelLock = 0;
+  feed.addEventListener('wheel', e => {
+    if (Math.abs(e.deltaY) < Math.abs(e.deltaX) || Math.abs(e.deltaY) < 4) return;
+    e.preventDefault();
+    if (e.timeStamp < wheelLock) return;
+    wheelLock = e.timeStamp + 600;
+    feed.scrollTo({ top: (cur + Math.sign(e.deltaY)) * feed.clientHeight, behavior: 'smooth' });
+  }, { passive: false });
+}
+
+$('#bagBtn').addEventListener('click', () => openSheet(renderBag()));
+$('#scrim').addEventListener('click', closeSheet);
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-close]')) return closeSheet();
+  const inc = e.target.closest('[data-inc]'), dec = e.target.closest('[data-dec]');
+  if (inc || dec) {
+    const i = +(inc || dec).dataset[inc ? 'inc' : 'dec'];
+    bag[i].qty += inc ? 1 : -1;
+    if (bag[i].qty <= 0) bag.splice(i, 1);
+    saveBag();
+    $('#sheet').innerHTML = '<div class="grab"></div>' + renderBag();
+  }
+  if (e.target.id === 'checkout') checkout();
+});
+
+// Shopify cart permalink: builds a fresh cart on babymood.md and lands on checkout
+function checkout() {
+  location.href = `${SHOP}/cart/${bag.map(l => `${l.id}:${l.qty}`).join(',')}`;
+}
+
+let toastT;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1200);
+}
+
+init();
+</script>
+</body>
+</html>
