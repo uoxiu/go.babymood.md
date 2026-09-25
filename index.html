@@ -358,6 +358,11 @@ async function init() {
     $('#status').textContent = 'Nu am putut încărca produsele';
     return;
   }
+  // a new order on every visit (Fisher–Yates), sold-out pieces still last
+  for (let i = products.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [products[i], products[j]] = [products[j], products[i]];
+  }
   products.sort((a, b) => avail(b) - avail(a));
   $('#status').remove();
   await route();
