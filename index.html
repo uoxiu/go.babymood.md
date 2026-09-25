@@ -389,18 +389,24 @@ let feedCtx = null, cur = -1, lastMainHandle = '';
 // the feed scrolls inside #feed on desktop, and as the whole page on phones (see the max-width: 699px CSS)
 const scroller = () => matchMedia('(max-width: 699px)').matches ? document.scrollingElement : $('#feed');
 const itemH = () => $('#feed').firstElementChild?.offsetHeight || 1;
-// product height = the tallest viewport seen (Safari's bars shrinking make it grow), so it never shrinks mid-scroll;
-// a new width (rotation) starts over
-let vh = 0, vw = 0;
+// product height = the viewport height now, so the product block always sits above the browser's bottom bar.
+// It follows the bars both ways: a first visit in Chrome on iOS reports the height with the bars hidden, then
+// shows them. A change during a swipe waits for the finger to lift and the glide to end, so nothing jumps mid-scroll
+let vh = 0, touching = false;
 function fit() {
-  if (innerWidth !== vw) { vw = innerWidth; vh = 0; }
-  if (innerHeight <= vh) return;
+  if (touching || innerHeight === vh) return;
   vh = innerHeight;
   document.documentElement.style.setProperty('--vh', vh + 'px');
   if (cur >= 0 && !$('#app').classList.contains('grid-on')) scroller().scrollTop = cur * itemH();
 }
 fit();
 addEventListener('resize', fit);
+addEventListener('pageshow', fit);
+addEventListener('touchstart', () => touching = true, { passive: true });
+addEventListener('touchend', e => { if (!e.touches.length) { touching = false; setTimeout(fit, 450); } });
+addEventListener('touchcancel', () => { touching = false; setTimeout(fit, 450); });
+// in case the browser settles its bars without a resize event
+[300, 1000, 2500].forEach(t => setTimeout(fit, t));
 
 function showFeed(ctx, handle) {
   let v = listFor(ctx);
