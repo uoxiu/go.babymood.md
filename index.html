@@ -20,9 +20,13 @@
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>BabyMood</title>
 <link rel="preconnect" href="https://babymood.md">
 <link rel="preconnect" href="https://cdn.shopify.com">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@14.2.0/swiper.min.css">
 <style>
   :root {
     --bg: #000;
@@ -59,28 +63,38 @@
 
   /* vertical feed */
   #feed { position: absolute; inset: 0; overflow-y: scroll; scroll-snap-type: y mandatory; overscroll-behavior-y: contain; scrollbar-width: none; }
-  #feed::-webkit-scrollbar, .gallery::-webkit-scrollbar { display: none; }
+  #feed::-webkit-scrollbar { display: none; }
   .item { position: relative; height: 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow: clip; background: #111; }
 
   /* horizontal photos, full bleed */
-  .gallery { position: absolute; inset: 0; display: flex; overflow-x: scroll; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; }
-  .gallery img { flex: 0 0 100%; width: 100%; height: 100%; object-fit: cover; scroll-snap-align: center; user-select: none; -webkit-user-drag: none; }
+  /* each product is a Swiper (see wire): it moves the photos on sideways swipes and leaves up/down to the page,
+     so a swipe only ever goes one way. .gallery is its wrapper, stretched to the item (or past it on phones) */
+  .gallery { position: absolute; inset: 0; height: auto; z-index: 0; }
+  .gallery img { width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; }
   .shade { position: absolute; inset: auto 0 0; height: 62%; background: linear-gradient(transparent, rgba(0,0,0,.35) 35%, rgba(0,0,0,.72)); pointer-events: none; }
   .shade.top-s { inset: 0 0 auto; height: 18%; background: linear-gradient(rgba(0,0,0,.35), transparent); }
 
   /* photo counter segments (TikTok photo mode), under the top bar */
   .segs { position: absolute; left: 12px; right: 12px; top: calc(var(--safe-t) + 50px); display: flex; gap: 4px; pointer-events: none; }
-  .segs i { flex: 1; height: 2px; border-radius: 1px; background: rgba(255,255,255,.35); }
-  .segs i.on { background: var(--fg); }
+  .segs i { flex: 1; height: 2px; border-radius: 1px; background: rgba(255,255,255,.35); position: relative; overflow: hidden; }
+  .segs i.done { background: var(--fg); }
+  /* autoplay, like stories: on the product in view the current line fills, then the next photo comes (see wire) */
+  .segs i.on::after { content: ""; position: absolute; inset: 0; background: var(--fg); transform-origin: left; }
+  .item.cur .segs i.on::after { animation: seg 4s linear forwards; }
+  .open .item.cur .segs i.on::after, .grid-on .item.cur .segs i.on::after { animation-play-state: paused; }
+  @keyframes seg { from { transform: scaleX(0); } }
 
   /* product block, bottom (brand, title, price, variants, actions) */
   .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 16px calc(var(--safe-b) + 18px); display: grid; gap: 10px; }
   /* the overlay lets touches through to the photos; only the controls catch them,
-     and pan-y hands their horizontal drags to JS (swipeProxy) while vertical stays native */
+     and a sideways drag that starts on one still moves the photos (Swiper listens on the whole item) */
   .cap, .side { pointer-events: none; }
   .cap button, .side button { pointer-events: auto; touch-action: pan-y; }
   .brand { font-size: 12px; font-weight: 500; letter-spacing: .32em; color: rgba(255,255,255,.85); }
   .ttl { font-size: 24px; line-height: 1.15; font-weight: 700; letter-spacing: -.01em; max-width: 78%; text-shadow: 0 1px 12px rgba(0,0,0,.25); }
+  /* the title opens the details sheet, like a TikTok Shop product card */
+  .ttl .more { text-align: left; text-shadow: inherit; }
+  .ttl .more span { font-weight: 400; margin-left: 6px; opacity: .8; }
   .prc { font-size: 17px; font-weight: 500; letter-spacing: .03em; text-transform: uppercase; margin-top: -2px; display: flex; align-items: baseline; gap: 10px; }
   .prc s { font-size: 15px; font-weight: 400; color: rgba(255,255,255,.6); text-decoration-thickness: 1px; }
   .sws { display: flex; gap: 12px; margin-top: 4px; padding-right: 90px; }
@@ -102,8 +116,8 @@
 
   /* right side: details, share, and the heart in a circle */
   .side { position: absolute; right: 14px; bottom: calc(var(--safe-b) + 90px); display: grid; gap: 16px; justify-items: center; }
-  .side .more, .side .share { display: grid; justify-items: center; gap: 2px; font-size: 11px; font-weight: 600; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
-  .side .more svg, .side .share svg { width: 28px; height: 28px; }
+  .side .share { display: grid; justify-items: center; gap: 2px; font-size: 11px; font-weight: 600; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+  .side .share svg { width: 28px; height: 28px; }
   .like { width: 48px; height: 48px; display: grid; place-items: center; filter: drop-shadow(0 1px 3px rgba(0,0,0,.4)); }
   .like svg { width: 36px; height: 36px; }
   .like.on svg { fill: var(--accent); stroke: var(--accent); }
@@ -119,15 +133,18 @@
   .status { position: absolute; inset: 0; display: grid; place-items: center; color: var(--dim); }
 
   /* bottom sheets (light, like TikTok Shop) */
-  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 20; }
-  .open .scrim { opacity: 1; pointer-events: auto; }
+  /* closed, the scrim and the sheet are hidden outright: Safari 26 would take its bar colours from them.
+     Scrolling a sheet or touching the scrim never scrolls the feed behind */
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: opacity .25s, visibility 0s .25s; z-index: 20; visibility: hidden; touch-action: none; }
+  .open .scrim { opacity: 1; pointer-events: auto; visibility: visible; transition: opacity .25s; }
   .sheet {
     position: absolute; left: 0; right: 0; bottom: 0; z-index: 21; max-height: 82dvh; overflow-y: auto;
     background: var(--sheet); color: var(--ink); border-radius: 14px 14px 0 0;
     padding: 8px 16px calc(var(--safe-b) + 16px);
-    transform: translateY(100%); transition: transform .3s cubic-bezier(.2,.8,.2,1);
+    transform: translateY(100%); transition: transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s .3s; visibility: hidden;
+    overscroll-behavior: none; overflow-x: hidden; /* no rubber band: pulling down at the top drags the sheet instead (see closeSheet) */
   }
-  .sheet.show { transform: none; }
+  .sheet.show { transform: none; visibility: visible; transition: transform .3s cubic-bezier(.2,.8,.2,1); }
   .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 12px; }
   .sh-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; margin-bottom: 12px; }
   .x { width: 32px; height: 32px; display: grid; place-items: center; color: var(--mute); }
@@ -141,7 +158,40 @@
   .total { display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding: 14px 0; font-weight: 700; }
   .rich { font-size: 15px; line-height: 1.55; }
   .rich p + p { margin-top: .8em; }
+  /* the Shopify description, restructured by richDetails() */
+  .rich h3 { font-size: 17px; margin: 24px 0 10px; }
+  .feat { list-style: none; display: grid; gap: 12px; margin: 16px 0; padding: 14px; border-radius: 14px; background: var(--chip); }
+  .feat:has(> li:only-child) { padding: 0; background: none; }  /* one line (e.g. the size guide intro): no card */
+  .feat li { display: flex; gap: 12px; align-items: center; font-size: 14px; line-height: 1.4; }
+  .ic { flex: 0 0 32px; height: 32px; border-radius: 50%; background: #fff; color: var(--accent); display: grid; place-items: center; }
+  .ic svg, .tip svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .size-t { margin: 12px 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .size-t table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .size-t th { background: var(--chip); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--mute); }
+  .size-t th, .size-t td { text-align: left; padding: 10px 12px; }
+  .size-t tr + tr td { border-top: 1px solid var(--line); }
+  .size-t td:first-child { font-weight: 700; }
+  .size-t td small { color: var(--mute); font-weight: 400; }
+  .tip { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0; padding: 12px 14px; border-radius: 12px; background: #fff1f4; font-size: 14px; line-height: 1.45; }
+  .tip svg { flex: 0 0 18px; color: var(--accent); margin-top: 1px; }
   .empty { color: var(--mute); padding: 24px 0; text-align: center; }
+
+  /* size helper: the link under the sizes, and its form sheet */
+  .fit { justify-self: start; margin-top: -2px; font-size: 14px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; text-shadow: 0 1px 3px rgba(0,0,0,.4); }
+  .fit-form { display: grid; gap: 16px; }
+  .fit-form[hidden] { display: none; }
+  .fit-form label { display: grid; gap: 6px; font-size: 14px; font-weight: 600; }
+  .fit-form select, .fit-form input { font: inherit; font-size: 16px; height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); width: 100%; }
+  .fit-form .bad { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .fit-form .err { color: var(--accent); font-weight: 500; font-size: 13px; margin: 0; }
+  .fit-form .err:empty { display: none; }
+  .unit { position: relative; }
+  .unit span { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--mute); font-weight: 400; }
+  .fit-res { padding: 8px 0 4px; display: grid; gap: 10px; text-align: center; }
+  .fit-again { justify-self: center; padding: 8px; color: var(--mute); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+  .fit-res:empty { display: none; }
+  .fit-big { font-size: 44px; font-weight: 800; line-height: 1; }
+  .fit-res p { color: var(--mute); font-size: 14px; line-height: 1.45; }
 
   .toast { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%) scale(.95); background: rgba(0,0,0,.72); color: #fff; padding: 12px 18px; border-radius: 8px; font-size: 14px; opacity: 0; transition: .2s; z-index: 30; pointer-events: none; }
   .toast.show { opacity: 1; transform: translate(-50%, -50%); }
@@ -158,6 +208,27 @@
   /* Colecții view */
   #grid { position: absolute; inset: 0; overflow-y: auto; background: var(--bg); padding: calc(var(--safe-t) + 56px) 0 calc(var(--safe-b) + 24px); display: none; scrollbar-width: none; }
   #grid::-webkit-scrollbar { display: none; }
+  /* phones: the page itself scrolls (not #feed), so Safari draws the photos under its see-through bars */
+  @media (max-width: 699px) {
+    html, body { height: auto; overflow: visible; }
+    html { scrollbar-width: none; }
+    html::-webkit-scrollbar { display: none; }
+    #app { position: static; }
+    .top, .status, .hint, .toast, .scrim, .sheet, #grid { position: fixed; }
+    #grid { overscroll-behavior: contain; }
+    #feed { position: static; overflow: visible; }
+    /* one product = the whole scroll area; --vh is measured in JS since on iOS 26 even lvh falls short */
+    .item { height: var(--vh, 100lvh); }
+    /* Safari's scroll area stops short of the status bar (~59px) and of the bottom bar (58-98px), and shows the
+       neighbouring products there: the photo reaches under both bars, with room to spare */
+    .item { overflow: clip visible; }
+    .gallery, .shade.top-s { top: -80px; }
+    .gallery, .shade:not(.top-s) { bottom: -120px; }
+    .item { z-index: 0; } /* Swiper's CSS gives every .swiper z-index 1 */
+    .item.cur { z-index: 1; }
+    /* the browser pans nothing on a product: up/down is the feed pager in JS, sideways is Swiper */
+    .item.swiper, .top { touch-action: none; } /* the current product covers its neighbours' photos, which reach into it */
+  }
   .grid-on #grid { display: block; }
   .grid-on #feed, .grid-on .hint { visibility: hidden; }
   .grid-on .top { background: var(--bg); }
@@ -173,6 +244,19 @@
   .th .pr { position: absolute; left: 6px; bottom: 5px; font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,.7); }
   .th .so { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.45); font-size: 12px; font-weight: 600; }
   .th .lk { position: absolute; right: 6px; top: 6px; width: 16px; height: 16px; }
+
+  /* last card of a feed: the other collections */
+  .item.end { display: grid; align-content: center; gap: 18px; padding: calc(var(--safe-t) + 64px) 16px calc(var(--safe-b) + 24px); background: var(--bg); touch-action: none; }
+  .item.end::before { content: ""; position: absolute; inset: -80px 0 -120px; background: var(--bg); z-index: -1; }  /* under both bars */
+  .end h2 { font-size: 24px; line-height: 1.15; }
+  .end p { color: var(--dim); font-size: 14px; margin-top: -12px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .col:last-child:nth-child(odd) { grid-column: 1 / -1; aspect-ratio: 8/3; }  /* an odd one out runs full width */
+  .col { position: relative; aspect-ratio: 4/3; border-radius: 12px; overflow: hidden; background: #1a1a1a; text-align: left; }
+  .col img { width: 100%; height: 100%; object-fit: cover; }
+  .col::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 35%, rgba(0,0,0,.7)); }
+  .col span { position: absolute; left: 10px; right: 10px; bottom: 8px; z-index: 1; font-weight: 700; font-size: 15px; line-height: 1.2; }
+  .col small { display: block; font-weight: 500; font-size: 12px; color: var(--dim); }
 </style>
 </head>
 <body>
@@ -197,6 +281,7 @@
   <section class="sheet" id="sheet"></section>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/swiper@14.2.0/swiper.min.js"></script>
 <script>
 const SHOP = 'https://babymood.md';
 const BAG_KEY = 'bm_bag_v1';
@@ -213,12 +298,12 @@ const text = html => { const d = document.createElement('div'); d.innerHTML = ht
 const ICON = {
   heart: '<svg width="34" height="34" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="0"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.1 0 3.6 1.2 5.2 3 1.6-1.8 3.1-3 5.2-3 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z"/></svg>',
   bagLine: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8h13l-1 12.5h-11z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>',
-  info: '<svg width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v9a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4A2.5 2.5 0 0 1 3 14.5z" transform="translate(.5 0)"/><path d="M8 8h8M8 11.5h5" stroke="#111" stroke-width="1.6" stroke-linecap="round"/></svg>',
   share: '<svg width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M13.5 4.5 22 12l-8.5 7.5v-4.3C8 15.2 4.6 17 2 21c.8-6.2 4.3-10.8 11.5-11.6z"/></svg>',
   x: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
 };
 
 let products = [];
+let SIZES = {};   // sizes.json: per product handle, its sizes with height (cm) and age (months) ranges
 let bag = read(BAG_KEY, []);
 let likes = new Set(read(LIKE_KEY, []));
 
@@ -259,7 +344,10 @@ const catLabel = k => (CATS.find(c => c[0] === k) || [k, 'Altele'])[1];
 async function init() {
   saveBag();
   try {
-    const res = await fetch(`${SHOP}/products.json?limit=250`);
+    const [res] = await Promise.all([
+      fetch(`${SHOP}/products.json?limit=250`),
+      fetch('sizes.json').then(r => r.json()).then(j => SIZES = j).catch(() => {}),   // optional: helper falls back
+    ]);
     products = (await res.json()).products.filter(p => p.images.length);
   } catch {
     $('#status').textContent = 'Nu am putut încărca produsele';
@@ -269,7 +357,7 @@ async function init() {
   $('#status').remove();
   await route();
   setTimeout(() => $('#hint').style.opacity = 0, 2500);
-  $('#feed').addEventListener('scroll', () => $('#hint').style.opacity = 0, { once: true });
+  [$('#feed'), window].forEach(t => t.addEventListener('scroll', () => $('#hint').style.opacity = 0, { once: true }));
 }
 
 // URL hash = where you are, so any view can be linked from an ad or story:
@@ -294,6 +382,21 @@ function listFor(ctx) {
 }
 
 let feedCtx = null, cur = -1, lastMainHandle = '';
+// the feed scrolls inside #feed on desktop, and as the whole page on phones (see the max-width: 699px CSS)
+const scroller = () => matchMedia('(max-width: 699px)').matches ? document.scrollingElement : $('#feed');
+const itemH = () => $('#feed').firstElementChild?.offsetHeight || 1;
+// product height = the tallest viewport seen (Safari's bars shrinking make it grow), so it never shrinks mid-scroll;
+// a new width (rotation) starts over
+let vh = 0, vw = 0;
+function fit() {
+  if (innerWidth !== vw) { vw = innerWidth; vh = 0; }
+  if (innerHeight <= vh) return;
+  vh = innerHeight;
+  document.documentElement.style.setProperty('--vh', vh + 'px');
+  if (cur >= 0 && !$('#app').classList.contains('grid-on')) scroller().scrollTop = cur * itemH();
+}
+fit();
+addEventListener('resize', fit);
 
 function showFeed(ctx, handle) {
   let v = listFor(ctx);
@@ -303,12 +406,35 @@ function showFeed(ctx, handle) {
   app.classList.remove('grid-on');
   app.classList.toggle('filtered', !!ctx);
   $('#ctxTitle').textContent = v.title;
-  feed.innerHTML = v.list.map(render).join('');
+  feed.innerHTML = v.list.map(render).join('') + endCard(ctx);
   v.list.forEach((p, i) => wire(feed.children[i], p));
   cur = -1;
-  feed.scrollTop = Math.max(0, v.list.findIndex(p => p.handle === handle)) * feed.clientHeight;
+  scroller().scrollTop = Math.max(0, v.list.findIndex(p => p.handle === handle)) * itemH();
   update();
 }
+
+// After the last product: the other collections (categories), each opening its own feed,
+// plus the way out: the whole grid from the main feed, the main feed from a category
+function endCard(ctx) {
+  const counts = {};
+  products.forEach(p => counts[catOf(p)] = (counts[catOf(p)] || 0) + 1);
+  const tile = (go, label, n, p) => `<button class="col" data-end="${go}">
+    ${p ? `<img alt="" data-src="${esc(img(p.images[0].src, 400))}">` : ''}<span>${esc(label)}<small>${n} ${n === 1 ? 'piesă' : 'piese'}</small></span></button>`;
+  const shown = Object.entries(counts).filter(([k]) => k !== ctx?.key).sort((a, b) => b[1] - a[1])
+    .map(([k, n]) => [k, n, products.find(p => catOf(p) === k)]);
+  const cats = shown.map(([k, n, p]) => tile(k, catLabel(k), n, p));
+  // the way-out tile gets a photo no category tile uses
+  const cover = products.find(p => !shown.some(c => c[2] === p)) || products[0];
+  const back = ctx ? tile('all', 'Toate produsele', products.length, cover) : tile('grid', 'Toată colecția', products.length, cover);
+  return `<section class="item end"><h2>Explorează alte colecții</h2><p>Ai văzut tot${ctx ? ` din ${esc(catLabel(ctx.key))}` : ''}. Mai sunt și acestea:</p>
+    <div class="cols">${cats.join('')}${back}</div></section>`;
+}
+$('#feed').addEventListener('click', e => {
+  const go = e.target.closest('[data-end]')?.dataset.end;
+  if (go === 'grid') showGrid();
+  else if (go === 'all') showFeed(null, '');
+  else if (go) showFeed({ kind: 't', key: go }, '');
+});
 
 let gridCat = '';
 function showGrid() {
@@ -356,28 +482,57 @@ const SWATCH = {
 const isColor = o => /colo|culoare/i.test(o.name);
 const sentence = t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
 
+// Size helper. Per size, a height range and an age range: height picks the size, age only adds a note.
+// The ranges come from sizes.json, or for a product not listed there yet, from the
+// "Ghid de mărimi" table in its description.
+const sizeOpt = p => realOpts(p).find(o => /size|m[aă]rime/i.test(o.name));
+function sizeChart(p) {
+  const o = sizeOpt(p), cfg = SIZES[p.handle];
+  if (o && cfg) return cfg.sizes.filter(r => o.values.includes(r.size))
+    .map(r => ({ size: r.size, lo: r.cm[0], hi: r.cm[1], a0: r.months?.[0], a1: r.months?.[1] })).sort((a, b) => a.lo - b.lo);
+  if (!o || !p.body_html) return [];
+  const doc = new DOMParser().parseFromString(p.body_html, 'text/html');
+  const months = t => { const m = t.match(/(\d+)\s*[–-]\s*(\d+)\s*(luni|an)/); return m && [+m[1], +m[2]].map(n => m[3] === 'luni' ? n : n * 12); };
+  return [...doc.querySelectorAll('tr')].map(tr => {
+    const cells = [...tr.cells].map(c => c.textContent.trim()), all = cells.join(' ');
+    const cm = all.match(/(\d+)\s*[–-]\s*(\d+)\s*cm/), age = months(all);
+    return cm && { size: cells[0].split(/\s/)[0], lo: +cm[1], hi: +cm[2], a0: age?.[0], a1: age?.[1] };
+  }).filter(r => r && o.values.includes(r.size)).sort((a, b) => a.lo - b.lo);
+}
+// chart rows from sizeChart; kid = { months, cm }
+function suggestSize(chart, kid) {
+  const n = chart.length, { cm } = kid;
+  // first size whose top is above the height: on a boundary or in a gap between two sizes that is the
+  // larger one, as the store's own guide advises
+  let i = chart.findIndex(r => cm < r.hi);
+  if (i < 0) i = n - 1;
+  const out = cm < chart[0].lo ? 'small' : cm > chart[n - 1].hi ? 'big' : '';
+  const age = chart.findIndex(r => r.a1 && kid.months < r.a1);
+  return { i, out, between: !out && cm < chart[i].lo, ageOff: age >= 0 && Math.abs(age - i) >= 2 };
+}
+
 function render(p) {
   const opts = realOpts(p);
   const color = opts.find(isColor);
   const rest = opts.filter(o => o !== color);
   const sold = !avail(p);
-  return `<article class="item" data-handle="${esc(p.handle)}">
-    <div class="gallery">${p.images.map(im => `<img alt="${esc(p.title)}" draggable="false" data-src="${esc(img(im.src, WIDTH))}">`).join('')}</div>
+  return `<article class="item swiper" data-handle="${esc(p.handle)}">
+    <div class="gallery swiper-wrapper">${p.images.map(im => `<img class="swiper-slide" alt="${esc(p.title)}" draggable="false" data-src="${esc(img(im.src, WIDTH))}">`).join('')}</div>
     <div class="shade top-s"></div><div class="shade"></div>
     ${p.images.length > 1 ? `<div class="segs">${p.images.map((_, j) => `<i class="${j ? '' : 'on'}"></i>`).join('')}</div>` : ''}
     <div class="side">
-      ${p.body_html ? `<button class="more" aria-label="Detalii">${ICON.info}<span>Detalii</span></button>` : ''}
       <button class="share" aria-label="Trimite">${ICON.share}<span>Trimite</span></button>
       <button class="like ${likes.has(p.handle) ? 'on' : ''}" aria-label="Salvează">${ICON.heart}</button>
     </div>
     <div class="cap">
       <div class="brand">BABYMOOD</div>
-      <h2 class="ttl">${esc(sentence(p.title))}</h2>
+      <h2 class="ttl">${p.body_html ? `<button class="more">${esc(sentence(p.title))}<span aria-hidden="true">›</span></button>` : esc(sentence(p.title))}</h2>
       <div class="prc">${priceHTML(p)}</div>
       ${color ? `<div class="sws" data-opt="${color.position}">${color.values.map(v =>
         `<button class="sw" data-val="${esc(v)}" aria-label="${esc(v)}" style="--c:${SWATCH[fold(v)] || '#8a8a8a'}"></button>`).join('')}</div>` : ''}
       ${rest.map(o => `<div class="szs" data-opt="${o.position}">${o.values.map(v =>
         `<button class="sz" data-val="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
+      ${sizeChart(p).length ? '<button class="fit">Ajută-mă să aleg mărimea</button>' : ''}
       <div class="acts">
         <button class="add" ${sold ? 'disabled' : ''}>${ICON.bagLine}<span>${sold ? 'Stoc epuizat' : 'Adaugă în coș'}</span></button>
         <button class="now" ${sold ? 'disabled' : ''}>Cumpără acum</button>
@@ -442,9 +597,11 @@ function wire(el, p) {
   // buy now = this piece plus whatever is already in the bag, straight to Shopify checkout
   $('.now', el).addEventListener('click', () => { const v = chosen(); if (v) { addToBag(v); checkout(); } });
 
+  $('.fit', el)?.addEventListener('click', () => sizeHelper(el, p));
+
   $('.more', el)?.addEventListener('click', () => openSheet(`
     <div class="sh-head"><span>${esc(p.title)}</span><button class="x" data-close>${ICON.x}</button></div>
-    <div class="rich">${p.body_html}</div>`));
+    <div class="rich">${richDetails(p.body_html)}</div>`));
 
   const likeBtn = $('.like', el);
   const setLike = on => {
@@ -463,10 +620,12 @@ function wire(el, p) {
     } catch {}
   });
 
-  // double tap on the photo = save, with the heart burst
+  // double tap on the photo = save, with the heart burst (a photo swipe is not a tap)
   const gal = $('.gallery', el);
-  let lastTap = 0;
+  let lastTap = 0, downX = 0;
+  gal.addEventListener('pointerdown', e => downX = e.clientX);
   gal.addEventListener('pointerup', e => {
+    if (Math.abs(e.clientX - downX) > 10) return lastTap = 0;
     const now = e.timeStamp;
     if (now - lastTap < 300) {
       const r = el.getBoundingClientRect();
@@ -479,49 +638,16 @@ function wire(el, p) {
     } else lastTap = now;
   });
 
-  swipeProxy(el, gal);
-
   const segs = el.querySelectorAll('.segs i');
-  if (segs.length) gal.addEventListener('scroll', () => {
-    const k = Math.round(gal.scrollLeft / gal.clientWidth);
-    segs.forEach((s, j) => s.classList.toggle('on', j === k));
-  }, { passive: true });
+  // touchEventsTarget: a swipe that starts on a button (colour, size, add…) moves the photos too
+  const sw = new Swiper(el, { touchEventsTarget: 'container', on: { slideChange: sw => segs.forEach((s, j) => {
+    s.classList.toggle('on', j === sw.activeIndex);
+    s.classList.toggle('done', j < sw.activeIndex);
+  }) } });
+  // the current line finished filling: next photo, and back to the first after the last
+  $('.segs', el)?.addEventListener('animationend', () => sw.isEnd ? sw.slideTo(0) : sw.slideNext());
 
   refresh();
-}
-
-// A horizontal drag that starts on a button (colour, size, add, heart…) moves the photos,
-// like a swipe on the photo itself. Taps keep working; vertical drags stay native (touch-action: pan-y).
-function swipeProxy(el, gal) {
-  let id = null, x0 = 0, y0 = 0, s0 = 0, dragging = false, eatClickUntil = 0;
-  el.addEventListener('pointerdown', e => {
-    if (e.pointerType === 'mouse' || !e.target.closest('.cap button, .side button')) return;
-    id = e.pointerId; x0 = e.clientX; y0 = e.clientY; s0 = gal.scrollLeft; dragging = false;
-  });
-  el.addEventListener('pointermove', e => {
-    if (e.pointerId !== id) return;
-    const dx = e.clientX - x0, dy = e.clientY - y0;
-    if (!dragging) {
-      if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy)) return;
-      dragging = true;
-      gal.style.scrollSnapType = 'none';   // follow the finger freely, snap on release
-    }
-    gal.scrollLeft = s0 - dx;
-  });
-  const end = e => {
-    if (e.pointerId !== id) return;
-    id = null;
-    if (!dragging) return;
-    const w = gal.clientWidth, dx = e.clientX - x0, last = gal.children.length - 1;
-    let k = Math.round(s0 / w);
-    if (Math.abs(dx) > w * 0.15) k += dx < 0 ? 1 : -1;
-    gal.style.scrollSnapType = '';
-    gal.scrollTo({ left: Math.max(0, Math.min(last, k)) * w, behavior: 'smooth' });
-    eatClickUntil = e.timeStamp + 350;     // the drag must not also count as a tap on the button
-  };
-  el.addEventListener('pointerup', end);
-  el.addEventListener('pointercancel', end);
-  el.addEventListener('click', e => { if (e.timeStamp < eatClickUntil) { e.stopPropagation(); e.preventDefault(); } }, true);
 }
 
 function renderBag() {
@@ -537,9 +663,82 @@ function renderBag() {
     : '<p class="empty">Coșul e gol</p>'}`;
 }
 
+const KID_KEY = 'bm_kid_v1';
+const AGES = [[6, '6 luni'], [9, '9 luni'], [12, '1 an'], [18, '1 an și jumătate'],
+  ...[2, 3, 4, 5, 6, 7, 8, 9, 10].map(y => [y * 12, y + ' ani'])];
+
+// the form remembers the child, so the next product opens pre-filled
+function sizeHelper(el, p) {
+  const chart = sizeChart(p), kid = read(KID_KEY, {});
+  openSheet(`
+    <div class="sh-head"><span>Ajută-mă să aleg mărimea</span><button class="x" data-close>${ICON.x}</button></div>
+    <form class="fit-form" novalidate>
+      <label>Vârsta copilului
+        <select name="months" required><option value="">Alege vârsta</option>${AGES.map(([m, t]) =>
+          `<option value="${m}" ${+kid.months === m ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      <label>Înălțimea<div class="unit"><input name="cm" type="number" inputmode="decimal" min="40" max="170" step="any" required value="${kid.cm ?? ''}"><span>cm</span></div></label>
+      <button class="cta">Arată mărimea potrivită</button>
+    </form>
+    <div class="fit-res"></div>`);
+
+  const form = $('#sheet .fit-form'), res = $('#sheet .fit-res');
+  // own check instead of the browser's, which focuses the first bad field and so pops the keyboard up
+  // the message goes under the field: empty and out of range read differently
+  const NAMES = { months: ['vârsta copilului'], cm: ['înălțimea', 'Înălțimea', 'cm'] };
+  const say = (x, msg) => {
+    x.classList.toggle('bad', !!msg);
+    const lab = x.closest('label');
+    let err = lab.querySelector('.err');
+    if (!err) { err = document.createElement('small'); err.className = 'err'; lab.append(err); }
+    err.textContent = msg;
+  };
+  const problem = x => {
+    const [what, What, unit] = NAMES[x.name];
+    if (x.validity.valueMissing || x.validity.badInput) return x.tagName === 'SELECT' ? `Alege ${what}.` : `Scrie ${what}.`;
+    return `${What} trebuie să fie între ${x.min} și ${x.max} ${unit}.`;
+  };
+  form.addEventListener('input', e => e.target.name in NAMES && say(e.target, ''));
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    document.activeElement.blur();   // close the keyboard so the result is in view
+    const fields = [...form.elements].filter(x => x.name in NAMES), bad = fields.filter(x => !x.validity.valid);
+    fields.forEach(x => say(x, x.validity.valid ? '' : problem(x)));
+    if (bad.length) { res.innerHTML = ''; return sheetTo(bad[0].closest('label')); }
+    const f = new FormData(form);
+    const k = { months: +f.get('months'), cm: +f.get('cm') };
+    write(KID_KEY, k);
+    const s = suggestSize(chart, k), row = chart[s.i];
+    const lines = [
+      s.out === 'small' ? `Cea mai mică mărime a acestui model e ${row.size} (${row.lo}–${row.hi} cm).`
+      : s.out === 'big' ? `Cea mai mare mărime a acestui model e ${row.size} (${row.lo}–${row.hi} cm).`
+      : s.between ? `${k.cm} cm e între ${chart[s.i - 1].size} și ${row.size}: alegem mărimea mai mare, ca să aibă loc să crească.`
+      : `La ${k.cm} cm se potrivește ${row.size} (${row.lo}–${row.hi} cm).`,
+      s.ageOff ? 'Pentru vârsta lui, copilul e mai înalt sau mai scund decât de obicei: ne-am ghidat după înălțime.' : '',
+    ];
+    const btn = el.querySelector(`[data-opt="${sizeOpt(p).position}"] [data-val="${CSS.escape(row.size)}"]`);
+    res.innerHTML = `<div>Îți recomandăm</div><div class="fit-big">${esc(row.size)}</div>
+      ${lines.filter(Boolean).map(t => `<p>${esc(t)}</p>`).join('')}
+      ${btn.disabled ? `<p>Mărimea ${esc(row.size)} nu mai e în stoc în culoarea aleasă.</p>`
+        : `<button class="cta" id="fitPick">Alege mărimea ${esc(row.size)}</button>`}
+      <button class="fit-again" type="button">Modifică datele</button>`;
+    // the result takes the form's place; "Modifică datele" brings the form back, still filled in
+    form.hidden = true;
+    $('#sheet').scrollTop = 0;
+    $('#fitPick')?.addEventListener('click', () => { btn.click(); closeSheet(); toast(`Mărimea ${row.size} aleasă`); });
+    $('.fit-again', res).addEventListener('click', () => { res.innerHTML = ''; form.hidden = false; });
+  });
+}
+
+// scroll the sheet alone to center el (scrollIntoView would also move the page behind it, and sideways)
+function sheetTo(el) {
+  const s = $('#sheet'), r = el.getBoundingClientRect(), sr = s.getBoundingClientRect();
+  s.scrollTo({ top: s.scrollTop + r.top - sr.top - (sr.height - r.height) / 2, behavior: 'smooth' });
+}
+
 function openSheet(html) {
   const s = $('#sheet');
   s.innerHTML = '<div class="grab"></div>' + html;
+  s.scrollTop = 0;
   $('#app').classList.add('open');
   s.offsetHeight; // commit the off-screen position so the slide-in animates
   s.classList.add('show');
@@ -547,6 +746,32 @@ function openSheet(html) {
 function closeSheet() {
   $('#app').classList.remove('open');
   $('#sheet').classList.remove('show');
+  // iOS shifts the page to show a focused field above the keyboard: put the current product back in place
+  if (cur >= 0 && !$('#app').classList.contains('grid-on')) scroller().scrollTo({ top: cur * itemH(), behavior: 'smooth' });
+}
+
+// Pulling down while the sheet is scrolled to the top moves the whole sheet with the finger;
+// let go past 100px (or flick) and it closes, otherwise it springs back.
+{
+  const s = $('#sheet');
+  let y0 = 0, t0 = 0, dy = 0, drag = false;
+  s.addEventListener('touchstart', e => { y0 = e.touches[0].clientY; t0 = e.timeStamp; dy = 0; drag = false; }, { passive: true });
+  s.addEventListener('touchmove', e => {
+    dy = e.touches[0].clientY - y0;
+    if (!drag && (dy <= 0 || s.scrollTop > 0)) return;
+    drag = true;
+    if (e.cancelable) e.preventDefault();
+    s.style.transition = 'none';
+    s.style.transform = `translateY(${Math.max(0, dy)}px)`;
+  }, { passive: false });
+  const end = e => {
+    if (!drag) return;
+    drag = false;
+    s.style.transition = s.style.transform = '';   // animate from where the finger left it
+    if (dy > 100 || dy / (e.timeStamp - t0) > .5) closeSheet();
+  };
+  s.addEventListener('touchend', end);
+  s.addEventListener('touchcancel', end);
 }
 
 // Load photos for the current product, the one before and the next two, so swipes never land on a blank frame.
@@ -554,11 +779,13 @@ const loadItem = i => $('#feed').children[i]?.querySelectorAll('img[data-src]').
 function update() {
   const feed = $('#feed'), items = feed.children;
   if ($('#app').classList.contains('grid-on')) return;
-  const i = Math.round(feed.scrollTop / feed.clientHeight);
+  const i = Math.round(scroller().scrollTop / itemH());
   if (i === cur || !items[i]) return;
   cur = i;
+  [...items].forEach((el, j) => el.classList.toggle('cur', j === i));
   loadItem(i); loadItem(i + 1); loadItem(i + 2); loadItem(i - 1);
   const h = items[i].dataset.handle;
+  if (!h) return;   // the collections card at the end
   if (!feedCtx) lastMainHandle = h;
   history.replaceState(null, '', '#' + (feedCtx ? `${feedCtx.kind}=${feedCtx.key}/` : '') + h);
 }
@@ -566,7 +793,36 @@ function update() {
 {
   const feed = $('#feed');
   let raf;
-  feed.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); }, { passive: true });
+  const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
+  feed.addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('scroll', onScroll, { passive: true });
+
+  // phones: a vertical drag moves the page with the finger, then glides to the next product (or back) on release.
+  // Done in JS because the browser would also start its own scroll during a quick sideways photo swipe.
+  let x0 = 0, y0 = 0, s0 = 0, t0 = 0, axis = null;
+  feed.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    x0 = t.clientX; y0 = t.clientY; s0 = scroller().scrollTop; t0 = e.timeStamp; axis = null;
+  }, { passive: true });
+  feed.addEventListener('touchmove', e => {
+    if (scroller() === feed || e.touches.length > 1) return;
+    const t = e.touches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    if (!axis) {
+      if (Math.abs(dx) + Math.abs(dy) < 6) return;
+      axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';   // 45°, the same split Swiper uses
+    }
+    if (axis === 'y') scroller().scrollTop = s0 - dy;
+  }, { passive: true });
+  const settle = e => {
+    if (axis !== 'y') return;
+    axis = null;
+    const dy = e.changedTouches[0].clientY - y0, h = itemH(), speed = Math.abs(dy) / (e.timeStamp - t0);
+    let k = Math.round(s0 / h);
+    if (Math.abs(dy) > h * .15 || speed > .3) k += dy < 0 ? 1 : -1;   // a flick counts even when short
+    scroller().scrollTo({ top: Math.max(0, Math.min(feed.children.length - 1, k)) * h, behavior: 'smooth' });
+  };
+  feed.addEventListener('touchend', settle);
+  feed.addEventListener('touchcancel', settle);
 
   // desktop: one wheel gesture = one product (small wheel steps would snap back otherwise)
   let wheelLock = 0;
@@ -575,7 +831,7 @@ function update() {
     e.preventDefault();
     if (e.timeStamp < wheelLock) return;
     wheelLock = e.timeStamp + 600;
-    feed.scrollTo({ top: (cur + Math.sign(e.deltaY)) * feed.clientHeight, behavior: 'smooth' });
+    scroller().scrollTo({ top: (cur + Math.sign(e.deltaY)) * itemH(), behavior: 'smooth' });
   }, { passive: false });
 }
 

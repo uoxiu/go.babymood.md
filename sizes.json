@@ -1,0 +1,83 @@
+{
+  "salopeta-delicata-din-bumbac": {
+    "title": "Salopetă Delicată din Bumbac",
+    "sizes": [
+      { "size": "S", "cm": [70, 80], "months": [10, 18] },
+      { "size": "M", "cm": [80, 90], "months": [18, 24] },
+      { "size": "L", "cm": [90, 100], "months": [24, 36] },
+      { "size": "XL", "cm": [100, 110], "months": [36, 48] }
+    ]
+  },
+  "pantaloni-scurți-din-denim": {
+    "title": "Pantaloni Scurți din Denim",
+    "sizes": [
+      { "size": "S", "cm": [85, 90], "months": [24, 36] },
+      { "size": "M", "cm": [95, 100], "months": [36, 48] },
+      { "size": "L", "cm": [105, 110], "months": [48, 60] },
+      { "size": "XL", "cm": [115, 120], "months": [60, 72] }
+    ]
+  },
+  "pantaloni-denim-comfort": {
+    "title": "Pantaloni Denim Comfort",
+    "sizes": [
+      { "size": "S", "cm": [85, 90], "months": [24, 36] },
+      { "size": "M", "cm": [95, 100], "months": [36, 48] },
+      { "size": "L", "cm": [105, 110], "months": [48, 60] },
+      { "size": "XL", "cm": [115, 120], "months": [60, 72] }
+    ]
+  },
+  "pantaloni-ușori-de-vara": {
+    "title": "Pantaloni Ușori de Vară",
+    "sizes": [
+      { "size": "S", "cm": [85, 95], "months": [24, 36] },
+      { "size": "M", "cm": [95, 105], "months": [36, 60] },
+      { "size": "L", "cm": [105, 115], "months": [60, 72] },
+      { "size": "XL", "cm": [115, 125], "months": [72, 84] }
+    ]
+  },
+  "pantaloni-lejeri-din-bumbac": {
+    "title": "Pantaloni Lejeri din Bumbac",
+    "sizes": [
+      { "size": "XS", "cm": [75, 85], "months": [12, 24] },
+      { "size": "S", "cm": [85, 95], "months": [24, 36] },
+      { "size": "M", "cm": [95, 105], "months": [36, 60] },
+      { "size": "L", "cm": [105, 112], "months": [60, 72] },
+      { "size": "XL", "cm": [112, 120], "months": [72, 84] }
+    ]
+  },
+  "camașa-soft-din-bumbac": {
+    "title": "Cămașă Soft din Bumbac",
+    "sizes": [
+      { "size": "S", "cm": [85, 95], "months": [24, 36] },
+      { "size": "M", "cm": [95, 105], "months": [36, 60] },
+      { "size": "L", "cm": [105, 115], "months": [60, 72] }
+    ]
+  },
+  "maiou-basic-din-bumbac": {
+    "title": "Maiou Basic din Bumbac",
+    "sizes": [
+      { "size": "S", "cm": [70, 80], "months": [10, 18] },
+      { "size": "M", "cm": [80, 90], "months": [18, 24] },
+      { "size": "L", "cm": [90, 100], "months": [24, 36] },
+      { "size": "XL", "cm": [100, 110], "months": [36, 48] }
+    ]
+  },
+  "tricou-basic-din-bumbac-copy": {
+    "title": "Tricou Delicat din Bumbac",
+    "sizes": [
+      { "size": "S", "cm": [70, 80], "months": [10, 18] },
+      { "size": "M", "cm": [80, 90], "months": [18, 24] },
+      { "size": "L", "cm": [90, 100], "months": [24, 36] },
+      { "size": "XL", "cm": [100, 110], "months": [36, 48] }
+    ]
+  },
+  "tricou-basic-din-bumbac": {
+    "title": "Tricou Basic din Bumbac",
+    "sizes": [
+      { "size": "S", "cm": [70, 80], "months": [10, 18] },
+      { "size": "M", "cm": [80, 90], "months": [18, 24] },
+      { "size": "L", "cm": [90, 100], "months": [24, 36] },
+      { "size": "XL", "cm": [100, 110], "months": [36, 48] }
+    ]
+  }
+}
