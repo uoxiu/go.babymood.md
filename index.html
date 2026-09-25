@@ -492,6 +492,11 @@ const SWATCH = {
 };
 const isColor = o => /colo|culoare/i.test(o.name);
 const sentence = t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+// sizes smallest first, whatever order Shopify keeps them in (it ignores a reorder on some products):
+// ages by their first number ("1-2 ani"), letters from XS to XXL; anything else keeps its place, after those
+const LETTERS = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+const sizeRank = v => { const n = v.match(/^\d+/), l = LETTERS.indexOf(v.trim().toUpperCase()); return n ? +n[0] : l >= 0 ? l : 1e3; };
+const sizeOrder = vals => vals.map((v, i) => [sizeRank(v), i, v]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(x => x[2]);
 
 // Size helper. Per size, a height range and an age range: height picks the size, age only adds a note.
 // The ranges come from sizes.json, or for a product not listed there yet, from the
@@ -541,7 +546,7 @@ function render(p) {
       <div class="prc">${priceHTML(p)}</div>
       ${color ? `<div class="sws" data-opt="${color.position}">${color.values.map(v =>
         `<button class="sw" data-val="${esc(v)}" aria-label="${esc(v)}" style="--c:${SWATCH[fold(v)] || '#8a8a8a'}"></button>`).join('')}</div>` : ''}
-      ${rest.map(o => `<div class="szs" data-opt="${o.position}">${o.values.map(v =>
+      ${rest.map(o => `<div class="szs" data-opt="${o.position}">${sizeOrder(o.values).map(v =>
         `<button class="sz" data-val="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
       ${sizeChart(p).length ? '<button class="fit">Ajută-mă să aleg mărimea</button>' : ''}
       <div class="acts">
