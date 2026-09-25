@@ -224,6 +224,10 @@
     .item { overflow: clip visible; }
     .gallery, .shade.top-s { top: -80px; }
     .gallery, .shade:not(.top-s) { bottom: -120px; }
+    /* the photo covers only the product's own height, not the taller gallery, so it is not zoomed in more
+       than the screen needs; the strips under the bars stay black (and hide the neighbouring products) */
+    .gallery { background: #000; }
+    .gallery img { height: var(--vh, 100lvh); margin-top: 80px; align-self: flex-start; }
     .item { z-index: 0; } /* Swiper's CSS gives every .swiper z-index 1 */
     .item.cur { z-index: 1; }
     /* the browser pans nothing on a product: up/down is the feed pager in JS, sideways is Swiper */
