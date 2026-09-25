@@ -102,8 +102,9 @@
   .sw.on { box-shadow: 0 0 0 2.5px #fff; border-color: rgba(0,0,0,.5); }
   .sw:disabled { opacity: .4; }
   .sw:disabled::after { content: ""; position: absolute; left: 50%; top: 3px; bottom: 3px; width: 1.5px; background: #fff; transform: rotate(45deg); }
-  .szs { display: flex; gap: 8px; padding-right: 90px; }
-  .sz { flex: 1 1 0; max-width: 70px; height: 36px; border-radius: 9px; border: 1px solid rgba(255,255,255,.45); background: rgba(0,0,0,.18); font-size: 15px; font-weight: 500; }
+  .szs { display: flex; gap: 6px; padding-right: 56px; }  /* clears the heart (48px at 14px from the edge) */
+  /* one line always: age sizes ("2-3 ani") need the smaller text to fit five across */
+  .sz { flex: 1 1 0; min-width: 0; max-width: 70px; height: 36px; padding: 0 2px; border-radius: 9px; border: 1px solid rgba(255,255,255,.45); background: rgba(0,0,0,.18); font-size: 13px; font-weight: 500; white-space: nowrap; }
   .sz.on { background: #fff; color: #111; border-color: #fff; font-weight: 700; }
   .sz:disabled { color: rgba(255,255,255,.35); border-color: rgba(255,255,255,.18); text-decoration: line-through; }
   .need { animation: need .45s; }
