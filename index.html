@@ -18,6 +18,26 @@
     location.replace('https://babymood.md' + path);
   })();
 </script>
+<!-- Same GA4 property and Meta Pixel as babymood.md (Shopify apps), so the catalog → checkout funnel is one story.
+     go. and the store share the babymood.md domain, so the GA and _fbp cookies carry over to checkout. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-9XWS7P4R8M"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-9XWS7P4R8M');
+  !function (f, b, e, v, n, t, s) {
+    if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
+    if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = [];
+    t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
+  }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+  // the URL hash follows the swipe (history.replaceState): without this, every swipe is a new PageView
+  fbq.disablePushState = true;
+  // no automatic button-click events: the catalog sends its own standard events below
+  fbq('set', 'autoConfig', false, '27068335076169303');
+  fbq('init', '27068335076169303');
+  fbq('track', 'PageView');
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -314,6 +334,35 @@ let likes = new Set(read(LIKE_KEY, []));
 
 function read(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }
 function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+// analytics: GA4 e-commerce events + the matching Meta standard events (both loaded in <head>)
+const track = {
+  seen: new Set(),
+  item: (p, v, qty = 1) => ({ item_id: String(p.id), item_name: p.title, item_variant: v && v.title !== 'Default Title' ? v.title : undefined,
+    item_category: catOf(p), price: +(v || p.variants[0]).price, quantity: qty }),
+  // once per product per visit: scrolling back and forth is not a new view
+  view(p) {
+    if (this.seen.has(p.handle)) return;
+    this.seen.add(p.handle);
+    const value = minPrice(p);
+    gtag('event', 'view_item', { currency: 'MDL', value, items: [this.item(p)] });
+    fbq('track', 'ViewContent', { content_ids: [String(p.id)], content_type: 'product_group', content_name: p.title, currency: 'MDL', value });
+  },
+  add(p, v) {
+    gtag('event', 'add_to_cart', { currency: 'MDL', value: +v.price, items: [this.item(p, v)] });
+    fbq('track', 'AddToCart', { content_ids: [String(v.id)], content_type: 'product', content_name: p.title, currency: 'MDL', value: +v.price });
+  },
+  like(p) {
+    gtag('event', 'add_to_wishlist', { currency: 'MDL', value: minPrice(p), items: [this.item(p)] });
+    fbq('track', 'AddToWishlist', { content_ids: [String(p.id)], content_name: p.title, currency: 'MDL', value: minPrice(p) });
+  },
+  share(p) { gtag('event', 'share', { method: navigator.share ? 'native' : 'copy_link', content_type: 'product', item_id: String(p.id) }); },
+  checkout(lines) {
+    const value = lines.reduce((s, l) => s + l.price * l.qty, 0);
+    gtag('event', 'begin_checkout', { currency: 'MDL', value, items: lines.map(l => ({ item_id: String(l.pid ?? l.id), item_name: l.title, item_variant: l.variant || undefined, price: l.price, quantity: l.qty })) });
+    fbq('track', 'InitiateCheckout', { content_ids: lines.map(l => String(l.id)), content_type: 'product', currency: 'MDL', value, num_items: lines.reduce((s, l) => s + l.qty, 0) });
+  },
+};
+
 function saveBag() {
   write(BAG_KEY, bag);
   const n = bag.reduce((s, l) => s + l.qty, 0);
@@ -611,8 +660,9 @@ function wire(el, p) {
   function addToBag(v) {
     const line = bag.find(l => l.id === v.id);
     if (line) line.qty++;
-    else bag.push({ id: v.id, qty: 1, title: p.title, variant: v.title === 'Default Title' ? '' : v.title, price: +v.price, image: p.images[0].src, handle: p.handle });
+    else bag.push({ id: v.id, pid: p.id, qty: 1, title: p.title, variant: v.title === 'Default Title' ? '' : v.title, price: +v.price, image: p.images[0].src, handle: p.handle });
     saveBag();
+    track.add(p, v);
   }
   $('.add', el).addEventListener('click', () => { const v = chosen(); if (v) { addToBag(v); toast('Adăugat în coș'); } });
   // buy now = this piece plus whatever is already in the bag, straight to Shopify checkout
@@ -627,6 +677,7 @@ function wire(el, p) {
   const likeBtn = $('.like', el);
   const setLike = on => {
     on ? likes.add(p.handle) : likes.delete(p.handle);
+    if (on) track.like(p);
     write(LIKE_KEY, [...likes]);
     likeBtn.classList.toggle('on', on);
     likeBtn.classList.remove('pop'); likeBtn.offsetWidth; likeBtn.classList.add('pop');
@@ -635,6 +686,7 @@ function wire(el, p) {
 
   $('.share', el).addEventListener('click', async () => {
     const url = location.href.split('#')[0] + '#' + p.handle;
+    track.share(p);
     try {
       if (navigator.share) await navigator.share({ title: p.title, url });
       else { await navigator.clipboard.writeText(url); toast('Link copiat'); }
@@ -807,6 +859,8 @@ function update() {
   loadItem(i); loadItem(i + 1); loadItem(i + 2); loadItem(i - 1);
   const h = items[i].dataset.handle;
   if (!h) return;   // the collections card at the end
+  const p = products.find(x => x.handle === h);
+  if (p) track.view(p);
   if (!feedCtx) lastMainHandle = h;
   history.replaceState(null, '', '#' + (feedCtx ? `${feedCtx.kind}=${feedCtx.key}/` : '') + h);
 }
@@ -873,7 +927,10 @@ document.addEventListener('click', e => {
 
 // Shopify cart permalink: builds a fresh cart on babymood.md and lands on checkout
 function checkout() {
-  location.href = `${SHOP}/cart/${bag.map(l => `${l.id}:${l.qty}`).join(',')}`;
+  track.checkout(bag);
+  // a beat for the GA and Pixel hits to leave before the page is replaced
+  const url = `${SHOP}/cart/${bag.map(l => `${l.id}:${l.qty}`).join(',')}`;
+  setTimeout(() => location.href = url, 300);
 }
 
 let toastT;
