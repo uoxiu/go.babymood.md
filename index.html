@@ -324,6 +324,8 @@ const ICON = {
   heart: '<svg width="34" height="34" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="0"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.1 0 3.6 1.2 5.2 3 1.6-1.8 3.1-3 5.2-3 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z"/></svg>',
   bagLine: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8h13l-1 12.5h-11z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>',
   share: '<svg width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M13.5 4.5 22 12l-8.5 7.5v-4.3C8 15.2 4.6 17 2 21c.8-6.2 4.3-10.8 11.5-11.6z"/></svg>',
+  info: '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
+  tip: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
   x: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
 };
 
@@ -544,6 +546,11 @@ const SWATCH = {
   grey: '#9b9b9b', gray: '#9b9b9b', brown: '#6a4a3a', pink: '#eec5cc', green: '#7e8e68', olive: '#6f7550',
   black: '#161616', red: '#c2504b', yellow: '#ecd27a',
 };
+// a two-word value ("Yellow Stripes") takes the colour named in it; stripes are drawn as white stripes over it
+function swatch(v) {
+  const f = fold(v), base = SWATCH[f] || SWATCH[f.split(/[\s-]+/).find(w => SWATCH[w])] || '#8a8a8a';
+  return /strip|dung/.test(f) ? `repeating-linear-gradient(45deg, ${base} 0 5px, #f7f7f5 5px 9px)` : base;
+}
 const isColor = o => /colo|culoare/i.test(o.name);
 const sentence = t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
 // sizes smallest first, whatever order Shopify keeps them in (it ignores a reorder on some products):
@@ -591,6 +598,7 @@ function render(p) {
     <div class="shade top-s"></div><div class="shade"></div>
     ${p.images.length > 1 ? `<div class="segs">${p.images.map((_, j) => `<i class="${j ? '' : 'on'}"></i>`).join('')}</div>` : ''}
     <div class="side">
+      ${p.body_html ? `<button class="share more" aria-label="Detalii">${ICON.info}<span>Detalii</span></button>` : ''}
       <button class="share" aria-label="Trimite">${ICON.share}<span>Trimite</span></button>
       <button class="like ${likes.has(p.handle) ? 'on' : ''}" aria-label="Salvează">${ICON.heart}</button>
     </div>
@@ -599,7 +607,7 @@ function render(p) {
       <h2 class="ttl">${p.body_html ? `<button class="more">${esc(sentence(p.title))}<span aria-hidden="true">›</span></button>` : esc(sentence(p.title))}</h2>
       <div class="prc">${priceHTML(p)}</div>
       ${color ? `<div class="sws" data-opt="${color.position}">${color.values.map(v =>
-        `<button class="sw" data-val="${esc(v)}" aria-label="${esc(v)}" style="--c:${SWATCH[fold(v)] || '#8a8a8a'}"></button>`).join('')}</div>` : ''}
+        `<button class="sw" data-val="${esc(v)}" aria-label="${esc(v)}" style="--c:${swatch(v)}"></button>`).join('')}</div>` : ''}
       ${rest.map(o => `<div class="szs" data-opt="${o.position}">${sizeOrder(o.values).map(v =>
         `<button class="sz" data-val="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
       ${sizeChart(p).length ? '<button class="fit">Ajută-mă să aleg mărimea</button>' : ''}
@@ -670,9 +678,10 @@ function wire(el, p) {
 
   $('.fit', el)?.addEventListener('click', () => sizeHelper(el, p));
 
-  $('.more', el)?.addEventListener('click', () => openSheet(`
-    <div class="sh-head"><span>${esc(p.title)}</span><button class="x" data-close>${ICON.x}</button></div>
-    <div class="rich">${richDetails(p.body_html)}</div>`));
+  // the title and the "Detalii" button on the side both open the description
+  el.querySelectorAll('.more').forEach(b => b.addEventListener('click', () => openSheet(`
+    <div class="sh-head"><span>${esc(sentence(p.title))}</span><button class="x" data-close>${ICON.x}</button></div>
+    <div class="rich">${richDetails(p.body_html)}</div>`)));
 
   const likeBtn = $('.like', el);
   const setLike = on => {
@@ -684,7 +693,7 @@ function wire(el, p) {
   };
   likeBtn.addEventListener('click', () => setLike(!likes.has(p.handle)));
 
-  $('.share', el).addEventListener('click', async () => {
+  $('.share:not(.more)', el).addEventListener('click', async () => {
     const url = location.href.split('#')[0] + '#' + p.handle;
     track.share(p);
     try {
@@ -800,6 +809,42 @@ function sizeHelper(el, p) {
     $('#fitPick')?.addEventListener('click', () => { btn.click(); closeSheet(); toast(`Mărimea ${row.size} aleasă`); });
     $('.fit-again', res).addEventListener('click', () => { res.innerHTML = ''; form.hidden = false; });
   });
+}
+
+// The Shopify description, laid out for the details sheet. The descriptions are typed by hand in a few shapes:
+// "Compoziție<br>100% bumbac" (a short label line, then its content), "Ghid mărimi:" alone or followed by
+// "1–2 ani - 75/80cm" lines, emoji bullet lines, a "Recomandăm…" closing note, sometimes a real <table>.
+// Labels become headings, size lines a table, emoji lines a feature card, the note a tip.
+function richDetails(html) {
+  const doc = new DOMParser().parseFromString(html || '', 'text/html');
+  doc.querySelectorAll('meta, script, style, link').forEach(x => x.remove());
+  doc.querySelectorAll('[style], [class], [id]').forEach(x => ['style', 'class', 'id'].forEach(a => x.removeAttribute(a)));
+  const isLabel = t => t.length <= 24 && !/[.!?\d]/.test(t.replace(/:$/, ''));
+  const h3 = t => `<h3>${esc(t.replace(/:$/, ''))}</h3>`;
+  const SIZE_LINE = /^(.+?)\s+[-–]\s+(\d+)\s*\/\s*(\d+)\s*cm$/i, EMOJI = /^([^\p{L}\p{N}\s]+)\s*(.+)$/u;
+  const out = [];
+  for (const node of doc.body.children) {
+    if (node.tagName === 'TABLE') { out.push(`<div class="size-t">${node.outerHTML}</div>`); continue; }
+    if (node.tagName !== 'P') { out.push(node.outerHTML); continue; }
+    let lines = node.innerHTML.split(/<br\s*\/?>/i).filter(l => text(l));
+    if (!lines.length) continue;
+    let plain = lines.map(text);
+    if (/^(💡|recomand)/i.test(plain[0])) {
+      out.push(`<div class="tip">${ICON.tip}<div>${lines.join('<br>').replace(/^\s*💡\s*/, '')}</div></div>`);
+      continue;
+    }
+    if (isLabel(plain[0])) { out.push(h3(plain[0])); lines = lines.slice(1); plain = plain.slice(1); }
+    if (!lines.length) continue;
+    const rows = plain.map(t => t.match(SIZE_LINE));
+    if (rows.every(Boolean)) {
+      out.push(`<div class="size-t"><table><tr><th>Vârstă</th><th>Înălțime</th></tr>${rows.map(([, age, lo, hi]) =>
+        `<tr><td>${esc(age)}</td><td>${lo}–${hi} cm</td></tr>`).join('')}</table></div>`);
+    } else if (plain.length > 1 && plain.every(t => EMOJI.test(t))) {
+      out.push(`<ul class="feat">${plain.map(t => { const [, ic, rest] = t.match(EMOJI);
+        return `<li><span class="ic">${esc(ic)}</span><span>${esc(rest)}</span></li>`; }).join('')}</ul>`);
+    } else out.push(`<p>${lines.join('<br>')}</p>`);
+  }
+  return out.join('');
 }
 
 // scroll the sheet alone to center el (scrollIntoView would also move the page behind it, and sideways)
