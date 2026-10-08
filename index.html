@@ -55,6 +55,8 @@
 <link rel="preconnect" href="https://babymood.md">
 <link rel="preconnect" href="https://cdn.shopify.com">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@14.2.0/swiper.min.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&display=swap">
 <style>
   :root {
     --bg: #000;
@@ -290,11 +292,67 @@
   .col::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 35%, rgba(0,0,0,.7)); }
   .col span { position: absolute; left: 10px; right: 10px; bottom: 8px; z-index: 1; font-weight: 700; font-size: 15px; line-height: 1.2; }
   .col small { display: block; font-weight: 500; font-size: 12px; color: var(--dim); }
+
+  /* brand cards (main feed only): the opening card, then the story cards between products (see STORIES).
+     The light ones sit on the brand beige, so the top bar turns dark while one is in view (.light) */
+  :root { --b-bg: #f5eee4; --b-ink: #2f2925; --b-mute: #7b6f63; --b-line: rgba(47,41,37,.12); }
+  .logo { position: absolute; left: 14px; top: calc(var(--safe-t) + 13px); padding: 4px 0; pointer-events: auto; }
+  .logo img { height: 14px; width: auto; filter: brightness(0) invert(1) drop-shadow(0 0 1px rgba(0,0,0,.5)) drop-shadow(0 1px 3px rgba(0,0,0,.35)); }
+  .filtered .logo, .grid-on .logo, .light .logo { display: none; }
+  .light .top { color: var(--b-ink); text-shadow: none; }
+  .light .bag-top, .light .back { filter: none; }
+  .light .bag-top svg { stroke: var(--b-ink); }
+  .light .menu svg { fill: var(--b-ink); }
+  .brand-in, .story { touch-action: none; }
+  .brand-in, .story.txt { background: var(--b-bg); color: var(--b-ink); }
+  .brand-in::before, .story.txt::before, .story::before { content: ""; position: absolute; inset: -80px 0 -120px; background: var(--b-bg); z-index: -1; }  /* under both bars */
+  .story:not(.txt)::before { background: #000; }
+
+  /* the opening card, like a lookbook cover: logo, one photo edge to edge, a serif line, nothing else.
+     The top bar steps aside while it is in view; the shop is one swipe away */
+  .brand-in { display: flex; flex-direction: column; align-items: center; text-align: center; padding: calc(var(--safe-t) + 30px) 0 calc(var(--safe-b) + 18px); }
+  .intro-on .top { opacity: 0; pointer-events: none; }
+  .intro-on .top * { pointer-events: none; }
+  .top { transition: opacity .3s; }
+  .in-logo { width: min(44%, 180px); height: auto; margin-bottom: 26px; }
+  .in-photo { flex: 1 1 0; min-height: 140px; width: 100%; overflow: hidden; background: #e9dfd1; }
+  .in-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; animation: drift 14s ease-out both; }
+  @keyframes drift { from { transform: scale(1.08); } }
+  .in-kick { margin-top: 26px; font-size: 10.5px; font-weight: 500; letter-spacing: .34em; color: var(--b-mute); }
+  .brand-in h1 { margin-top: 12px; font: 400 min(34px, 8.6vw)/1.08 "Cormorant Garamond", Georgia, serif; letter-spacing: -.005em; }
+  .brand-in h1 em { font-style: italic; }
+  .brand-in p { margin-top: 10px; font-size: 13px; line-height: 1.5; letter-spacing: .02em; color: var(--b-mute); }
+  /* the cue: a hairline that draws itself downwards, and one tracked word */
+  .in-go { margin-top: 18px; display: grid; justify-items: center; gap: 8px; font-size: 10px; font-weight: 500; letter-spacing: .34em; color: var(--b-mute); padding: 0 20px; }
+  .in-go i { width: 1px; height: 26px; background: linear-gradient(var(--b-ink), var(--b-ink)) top / 1px 0 no-repeat, var(--b-line); animation: draw 2.2s ease-in-out infinite; }
+  @keyframes draw { 0% { background-size: 1px 0; background-position: top; } 50% { background-size: 1px 100%; background-position: top; } 51% { background-position: bottom; } 100% { background-size: 1px 0; background-position: bottom; } }
+
+  /* story cards on a photo or video: the same caption block as a product */
+  .st-media { position: absolute; inset: 0; }
+  .st-media img, .st-media video { width: 100%; height: 100%; object-fit: cover; }
+  .cap a { pointer-events: auto; touch-action: pan-y; }
+  .st-txt { font-size: 15px; line-height: 1.45; color: rgba(255,255,255,.88); max-width: 34ch; margin-top: -2px; text-shadow: 0 1px 8px rgba(0,0,0,.3); }
+  .st-btn { justify-self: start; height: 46px; padding: 0 20px; margin-top: 4px; border-radius: 14px; background: #fff; color: #111; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+
+  /* story card in text, on the brand beige: set like the opening card, centred, a serif title,
+     the terms as a hairline list, and a thin outlined button */
+  .story.txt { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: calc(var(--safe-t) + 64px) 28px calc(var(--safe-b) + 28px); }
+  .story.txt .in-logo { width: 110px; margin-bottom: 34px; }
+  .kick { font-size: 10.5px; font-weight: 500; letter-spacing: .34em; color: var(--b-mute); }
+  .story.txt h2 { margin-top: 12px; font: 400 min(32px, 8.2vw)/1.1 "Cormorant Garamond", Georgia, serif; }
+  .story.txt h2 em { font-style: italic; }
+  .terms { width: 100%; max-width: 340px; margin-top: 28px; border-top: 1px solid var(--b-line); }
+  .terms div { padding: 15px 0; border-bottom: 1px solid var(--b-line); display: grid; gap: 4px; }
+  .terms dt { font-size: 10px; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; color: var(--b-mute); }
+  .terms dd { font: 400 19px/1.3 "Cormorant Garamond", Georgia, serif; font-variant-numeric: lining-nums; }
+  .story.txt .st-btn { margin-top: 30px; height: 46px; padding: 0 26px; border-radius: 0; background: none; color: var(--b-ink); border: 1px solid var(--b-ink); font-size: 11px; font-weight: 500; letter-spacing: .28em; text-transform: uppercase; }
+  .story.txt .st-btn svg { width: 14px; height: 14px; stroke-width: 1.5; }
 </style>
 </head>
 <body>
 <div id="app">
   <div class="top">
+    <button class="logo" id="logoBtn" aria-label="BabyMood"><img src="brand/logo.png" alt="BabyMood"></button>
     <button class="back" id="backBtn" aria-label="Înapoi">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
     </button>
@@ -364,6 +422,16 @@ const track = {
   like(p) {
     gtag('event', 'add_to_wishlist', { currency: 'MDL', value: minPrice(p), items: [this.item(p)] });
     fbq('track', 'AddToWishlist', { content_ids: [String(p.id)], content_name: p.title, currency: 'MDL', value: minPrice(p) });
+  },
+  // brand cards, as GA4 promotions: seen once per visit, and which button was tapped
+  story(id) {
+    if (this.seen.has('story:' + id)) return;
+    this.seen.add('story:' + id);
+    gtag('event', 'view_promotion', { promotion_id: id, promotion_name: 'brand_' + id });
+  },
+  storyTap(id, action) {
+    gtag('event', 'select_promotion', { promotion_id: id, promotion_name: 'brand_' + id, creative_slot: action });
+    if (action === 'dm') fbq('track', 'Contact');
   },
   share(p) { gtag('event', 'share', { method: navigator.share ? 'native' : 'copy_link', content_type: 'product', item_id: String(p.id) }); },
   checkout(lines) {
@@ -481,11 +549,68 @@ function showFeed(ctx, handle) {
   app.classList.remove('grid-on');
   app.classList.toggle('filtered', !!ctx);
   $('#ctxTitle').textContent = v.title;
-  feed.innerHTML = v.list.map(render).join('') + endCard(ctx);
-  v.list.forEach((p, i) => wire(feed.children[i], p));
+  const cards = v.list.map(render);
+  if (!ctx) {
+    // the main feed tells the brand: stories between the products (inserted from the back, so the
+    // positions hold), the opening card first. A link to a product still lands on that product
+    [...STORIES].reverse().forEach(s => s.after < cards.length && cards.splice(s.after, 0, story(s)));
+    cards.unshift(INTRO);
+  }
+  feed.innerHTML = cards.join('') + endCard(ctx);
+  const byHandle = {};
+  for (const el of feed.children) if (el.dataset.handle) byHandle[el.dataset.handle] = el;
+  v.list.forEach(p => wire(byHandle[p.handle], p));
   cur = -1;
-  scroller().scrollTop = Math.max(0, v.list.findIndex(p => p.handle === handle)) * itemH();
+  scroller().scrollTop = Math.max(0, [...feed.children].indexOf(byHandle[handle])) * itemH();
   update();
+}
+
+// Brand cards. The order answers what DM conversations ask before buying (persona.md): who you are,
+// does the size fit, how delivery and payment work, is it for girls or boys. Terms as on babymood.md/pages/livrare
+// and /pages/politica-de-retur; change them here when those pages change
+const DM = 'https://ig.me/m/babymood.md';
+const ARROW = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const INTRO = `<section class="item brand-in" data-story="intro" data-light>
+  <img class="in-logo" src="brand/logo.png" alt="BabyMood">
+  <div class="in-photo"><img src="brand/intro.jpg" alt="Fetiță în rochie albă brodată, pe o alee cu copaci" fetchpriority="high"></div>
+  <div class="in-kick">COLECȚIA TOAMNĂ 2026</div>
+  <h1>O selecție mică,<br><em>aleasă cu grijă.</em></h1>
+  <p>Haine pentru copii, din atelierele din Seoul.</p>
+  <button class="in-go" data-next><i></i>GLISEAZĂ</button>
+</section>`;
+// after = how many products come before the card
+const STORIES = [
+  { id: 'atelier', after: 3, video: 'brand/atelier.mp4', poster: 'brand/atelier.jpg', kick: 'DIN SEOUL',
+    title: 'Aleasă piesă cu piesă, în loturi mici.',
+    text: 'Nu aducem tot. Aducem puțin și bun, din atelierele de haine pentru copii din Seoul.',
+    btn: ['grid', 'Vezi toată colecția'] },
+  { id: 'croiala', after: 7, photo: 'brand/fit.jpg', kick: 'CROIALA',
+    title: 'Croite lejer, ca să crească odată cu copilul.',
+    text: 'Hainele coreene vin puțin mai largi. La fiecare piesă, „Ajută-mă să aleg mărimea” îți arată mărimea după înălțime.',
+    btn: ['dm', 'Întreabă-ne de mărime'] },
+  { id: 'livrare', after: 11, kick: 'LIVRARE ȘI PLATĂ', title: 'Plătești doar când primești coletul.', titleHTML: 'Plătești doar<br><em>când primești coletul.</em>',
+    terms: [['Chișinău', 'Livrare gratuită, în 1–2 zile lucrătoare'],
+      ['Restul Moldovei', '80 lei, în 2–5 zile lucrătoare'],
+      ['Plata', 'Numerar, la livrare. Verifici produsul, apoi achiți'],
+      ['Retur în 14 zile', 'Dacă mărimea nu se potrivește, te ajutăm cu un schimb']],
+    btn: ['dm', 'Scrie-ne pe Instagram'] },
+  { id: 'unisex', after: 15, video: 'brand/unisex.mp4', poster: 'brand/unisex.jpg', kick: 'PENTRU FETIȚE ȘI BĂIEȚEI',
+    title: 'Alegi după gust, nu după culoare.',
+    text: 'Culori blânde și croieli simple, care arată la fel de bine pe o fetiță și pe un băiețel.' },
+];
+function story(s) {
+  const btn = s.btn && (s.btn[0] === 'dm'
+    ? `<a class="st-btn" href="${DM}" target="_blank" rel="noopener" data-act="dm">${esc(s.btn[1])}${ARROW}</a>`
+    : `<button class="st-btn" data-act="${s.btn[0]}">${esc(s.btn[1])}${ARROW}</button>`);
+  if (s.terms) return `<section class="item story txt" data-story="${s.id}" data-light><img class="in-logo" src="brand/logo.png" alt="BabyMood"><div class="kick">${s.kick}</div>
+    <h2>${s.titleHTML || esc(s.title)}</h2>
+    <dl class="terms">${s.terms.map(([t, d]) => `<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join('')}</dl>${btn}</section>`;
+  const media = s.video ? `<video muted loop playsinline preload="none" data-poster="${s.poster}" data-src="${s.video}"></video>`
+    : `<img alt="" data-src="${s.photo}">`;
+  return `<section class="item story" data-story="${s.id}"><div class="st-media">${media}</div>
+    <div class="shade top-s"></div><div class="shade"></div>
+    <div class="cap"><div class="brand">${s.kick}</div><h2 class="ttl">${esc(s.title)}</h2>
+    <p class="st-txt">${esc(s.text)}</p>${btn || ''}</div></section>`;
 }
 
 // After the last product: the other collections (categories), each opening its own feed,
@@ -505,6 +630,13 @@ function endCard(ctx) {
     <div class="cols">${cats.join('')}${back}</div></section>`;
 }
 $('#feed').addEventListener('click', e => {
+  if (e.target.closest('[data-next]')) return scroller().scrollTo({ top: (cur + 1) * itemH(), behavior: 'smooth' });
+  const act = e.target.closest('[data-act]');
+  if (act) {
+    track.storyTap(act.closest('[data-story]').dataset.story, act.dataset.act);
+    if (act.dataset.act === 'grid') showGrid();
+    return;   // the DM link opens Instagram on its own
+  }
   const go = e.target.closest('[data-end]')?.dataset.end;
   if (go === 'grid') showGrid();
   else if (go === 'all') showFeed(null, '');
@@ -514,7 +646,7 @@ $('#feed').addEventListener('click', e => {
 let gridCat = '';
 function showGrid() {
   $('#app').classList.add('grid-on');
-  $('#app').classList.remove('filtered');
+  $('#app').classList.remove('filtered', 'light', 'intro-on');
   $('#ctxTitle').textContent = 'Toată colecția';
   history.replaceState(null, '', '#colectii');
   renderGrid();
@@ -545,6 +677,7 @@ $('#grid').addEventListener('click', e => {
   else if (th) showFeed(gridCat ? { kind: 't', key: gridCat } : null, th.dataset.p);
 });
 $('#menuBtn').addEventListener('click', showGrid);
+$('#logoBtn').addEventListener('click', () => scroller().scrollTo({ top: 0, behavior: 'smooth' }));   // back to the opening card
 // back: from the grid to the main feed where you left it; from a category feed to the grid
 $('#backBtn').addEventListener('click', () => $('#app').classList.contains('grid-on') ? showFeed(null, lastMainHandle) : showGrid());
 
@@ -901,7 +1034,11 @@ function closeSheet() {
 }
 
 // Load photos for the current product, the one before and the next two, so swipes never land on a blank frame.
-const loadItem = i => $('#feed').children[i]?.querySelectorAll('img[data-src]').forEach(im => { im.src = im.dataset.src; im.removeAttribute('data-src'); });
+// A story video gets its poster and source too, but (preload="none") downloads only once it plays
+const loadItem = i => $('#feed').children[i]?.querySelectorAll('[data-src], [data-poster]').forEach(m => {
+  if (m.dataset.poster) { m.poster = m.dataset.poster; m.removeAttribute('data-poster'); }
+  if (m.dataset.src) { m.src = m.dataset.src; m.removeAttribute('data-src'); }
+});
 function update() {
   const feed = $('#feed'), items = feed.children;
   if ($('#app').classList.contains('grid-on')) return;
@@ -910,7 +1047,18 @@ function update() {
   cur = i;
   [...items].forEach((el, j) => el.classList.toggle('cur', j === i));
   loadItem(i); loadItem(i + 1); loadItem(i + 2); loadItem(i - 1);
-  const h = items[i].dataset.handle;
+  const el = items[i], vid = $('video', el);
+  $('#app').classList.toggle('light', 'light' in el.dataset);
+  $('#app').classList.toggle('intro-on', el.dataset.story === 'intro');
+  feed.querySelectorAll('video').forEach(x => x !== vid && x.pause());
+  vid?.play().catch(() => {});
+  if (el.dataset.story) {
+    track.story(el.dataset.story);
+    $('#hint').style.opacity = 0;   // the opening card has its own cue
+    if (el.dataset.story === 'intro') history.replaceState(null, '', location.pathname + location.search);
+    return;
+  }
+  const h = el.dataset.handle;
   if (!h) return;   // the collections card at the end
   const p = products.find(x => x.handle === h);
   if (p) track.view(p);
