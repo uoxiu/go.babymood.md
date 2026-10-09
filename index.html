@@ -645,6 +645,11 @@ function showFeed(ctx, handle) {
 // does the size fit, how delivery and payment work, is it for girls or boys. Terms as on babymood.md/pages/livrare
 // and /pages/politica-de-retur; change them here when those pages change
 const DM = 'https://ig.me/m/babymood.md';
+// Inside Instagram's own browser ig.me does not hand over to the app (it is the app already) and lands on the
+// web login. There the button opens the profile through the app's own scheme, where "Mesaj" is one tap away;
+// if nothing takes over, a toast says where to write instead
+const IN_IG = /Instagram/.test(navigator.userAgent);
+const IG_APP = 'instagram://user?username=babymood.md';
 const ARROW = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 const INTRO = `<section class="item brand-in" data-story="intro" data-light>
   <img class="in-logo" src="brand/logo.png" alt="BabyMood">
@@ -710,6 +715,12 @@ $('#feed').addEventListener('click', e => {
   const act = e.target.closest('[data-act]');
   if (act) {
     track.storyTap(act.closest('[data-story]').dataset.story, act.dataset.act);
+    if (act.dataset.act === 'dm' && IN_IG) {
+      e.preventDefault();
+      location.href = IG_APP;
+      setTimeout(() => document.hidden || toast('Scrie-ne în DM la @babymood.md', 3500), 1500);
+      return;
+    }
     if (act.dataset.act === 'grid') showGrid();
     return;   // the DM link opens Instagram on its own
   }
@@ -1223,10 +1234,10 @@ function checkout() {
 }
 
 let toastT;
-function toast(msg) {
+function toast(msg, ms = 1200) {
   const t = $('#toast');
   t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1200);
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms);
 }
 
 init();
