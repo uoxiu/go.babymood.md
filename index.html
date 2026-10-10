@@ -327,7 +327,10 @@
   .brand-in h1 em { font-style: italic; }
   .brand-in p { margin-top: 10px; font-size: 13px; line-height: 1.5; letter-spacing: .02em; color: var(--b-mute); }
   /* the cue: a hairline that draws itself downwards, and one tracked word */
-  .in-go { margin-top: 18px; display: grid; justify-items: center; gap: 8px; font-size: 10px; font-weight: 500; letter-spacing: .34em; color: var(--b-mute); padding: 0 20px; }
+  /* the way straight to the whole collection, for whoever doesn't want to swipe: a thin outlined button */
+  .in-all { margin-top: 20px; height: 44px; padding: 0 28px; border: 1px solid var(--b-ink); color: var(--b-ink); font-size: 10.5px; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; transition: background .2s, color .2s; }
+  .in-all:active { background: var(--b-ink); color: #F5EEE4; }
+  .in-go { margin-top: 14px; display: grid; justify-items: center; gap: 8px; font-size: 10px; font-weight: 500; letter-spacing: .34em; color: var(--b-mute); padding: 0 20px; }
   .in-go i { width: 1px; height: 26px; background: linear-gradient(var(--b-ink), var(--b-ink)) top / 1px 0 no-repeat, var(--b-line); animation: draw 2.2s ease-in-out infinite; }
   @keyframes draw { 0% { background-size: 1px 0; background-position: top; } 50% { background-size: 1px 100%; background-position: top; } 51% { background-position: bottom; } 100% { background-size: 1px 0; background-position: bottom; } }
 
@@ -347,7 +350,8 @@
   .brand-in.cur h1 .ln:nth-child(1) > * { animation-delay: 1.3s; }
   .brand-in.cur h1 .ln:nth-child(2) > * { animation-delay: 1.48s; }
   .brand-in.cur p { animation: up .9s ease-out 1.9s both; }
-  .brand-in.cur .in-go { animation: up .9s ease-out 2.3s both; }
+  .brand-in.cur .in-all { animation: up .9s ease-out 2.1s both; }
+  .brand-in.cur .in-go { animation: up .9s ease-out 2.4s both; }
   /* the delivery card, the same way when it comes into view: logo, kicker, title lines, then each term
      with its hairline drawing out from the centre */
   .story.txt.cur .in-logo { animation: focus 1s cubic-bezier(.2,.7,.2,1) both; }
@@ -658,6 +662,7 @@ const INTRO = `<section class="item brand-in" data-story="intro" data-light>
   <div class="in-kick">COLECȚIA TOAMNĂ 2026</div>
   <h1><span class="ln"><span>O selecție mică,</span></span><span class="ln"><em>aleasă cu grijă.</em></span></h1>
   <p>Haine pentru copii, din atelierele din Seoul.</p>
+  <button class="in-all" data-act="grid">Vezi toată colecția</button>
   <button class="in-go" data-next><i></i>GLISEAZĂ</button>
 </section>`;
 // after = how many products come before the card
