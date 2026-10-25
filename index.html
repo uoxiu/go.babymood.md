@@ -435,6 +435,15 @@
   .terms div::after { bottom: 0; }
   .terms dt { font-size: 10px; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; color: var(--b-mute); }
   .terms dd { font: 400 19px/1.3 "Cormorant Garamond", Georgia, serif; font-variant-numeric: lining-nums; }
+  /* customer stories: one portrait story at a time, cross-fading; sized to whatever height the card leaves */
+  .story.rv { padding-top: calc(var(--safe-t) + 56px); }
+  .rv-stack { position: relative; margin-top: 22px; height: min(calc(var(--vh, 100svh) - var(--safe-t) - var(--safe-b) - 250px), 112vw); aspect-ratio: 640 / 1131;
+    border-radius: 16px; overflow: hidden; background: var(--b-line); box-shadow: 0 14px 40px rgba(0,0,0,.14); }
+  .rv-stack img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .9s ease; }
+  .rv-stack img.on { opacity: 1; }
+  .rv-txt { margin-top: 16px; font-size: 13px; line-height: 1.5; letter-spacing: .02em; color: var(--b-mute); }
+  .story.rv.cur .rv-stack { animation: up .9s ease-out .7s both; }
+  .story.rv.cur .rv-txt { animation: up .9s ease-out 1s both; }
 </style>
 </head>
 <body>
@@ -667,24 +676,40 @@ const INTRO = `<section class="item brand-in" data-story="intro" data-light>
 </section>`;
 // after = how many products come before the card
 const STORIES = [
-  { id: 'atelier', after: 3, video: 'brand/atelier.mp4', poster: 'brand/atelier.jpg', kick: 'DIN SEOUL',
+  // Instagram stories of customers who tagged us (cropped from store/reviews/), shown one after another
+  { id: 'clienti', after: 3, kick: 'CLIENȚII NOȘTRI', titleHTML: '<span class="ln"><span>Ne-au arătat coletul</span></span><span class="ln"><em>pe Instagram.</em></span>',
+    reviews: [['1', 'Punga BabyMood la livrare'], ['2', 'Fetiță care despachetează coletul BabyMood'],
+      ['3', 'Fetiță în pantaloni crem BabyMood'], ['4', 'Pantaloni și tricou BabyMood scoși din colet'],
+      ['5', 'Pantaloni BabyMood despachetați'], ['6', 'Punga BabyMood primită acasă'],
+      ['7', 'Fetiță în bluză albă cu volane BabyMood'], ['8', 'Băiețel în pulover bej și căciulă maro BabyMood']],
+    text: 'Story-uri reale, de la cei care au primit coletul.' },
+  { id: 'atelier', after: 7, video: 'brand/atelier.mp4', poster: 'brand/atelier.jpg', kick: 'DIN SEOUL',
     title: 'Aleasă piesă cu piesă, în loturi mici.',
     text: 'Nu aducem tot. Aducem puțin și bun, din atelierele de haine pentru copii din Seoul.',
     btn: ['grid', 'Vezi toată colecția'] },
-  { id: 'croiala', after: 7, photo: 'brand/fit.jpg', kick: 'CROIALA',
+  { id: 'croiala', after: 11, photo: 'brand/fit.jpg', kick: 'CROIALA',
     title: 'Croite lejer, ca să crească odată cu copilul.',
     text: 'Hainele coreene vin puțin mai largi. La fiecare piesă, „Ajută-mă să aleg mărimea” îți arată mărimea după înălțime.' },
-  { id: 'livrare', after: 11, kick: 'LIVRARE ȘI PLATĂ', title: 'Plătești doar când primești coletul.', titleHTML: '<span class="ln"><span>Plătești doar</span></span><span class="ln"><em>când primești coletul.</em></span>',
+  { id: 'livrare', after: 15, kick: 'LIVRARE ȘI PLATĂ', title: 'Plătești doar când primești coletul.', titleHTML: '<span class="ln"><span>Plătești doar</span></span><span class="ln"><em>când primești coletul.</em></span>',
     terms: [['Chișinău', 'Livrare gratuită, în 1–2 zile lucrătoare'],
       ['Restul Moldovei', '80 lei, în 2–5 zile lucrătoare'],
       ['Plata', 'Numerar, la livrare. Verifici produsul, apoi achiți'],
       ['Retur în 14 zile', 'Dacă mărimea nu se potrivește, te ajutăm cu un schimb']] },
-  { id: 'unisex', after: 15, video: 'brand/unisex.mp4', poster: 'brand/unisex.jpg', kick: 'PENTRU FETIȚE ȘI BĂIEȚEI',
+  { id: 'unisex', after: 19, video: 'brand/unisex.mp4', poster: 'brand/unisex.jpg', kick: 'PENTRU FETIȚE ȘI BĂIEȚEI',
     title: 'Alegi după gust, nu după culoare.',
     text: 'Culori blânde și croieli simple, care arată la fel de bine pe o fetiță și pe un băiețel.' },
 ];
 function story(s) {
   const btn = s.btn && `<button class="st-btn" data-act="${s.btn[0]}">${esc(s.btn[1])}${ARROW}</button>`;
+  if (s.reviews) {
+    // a new order on every visit; the card shows them one by one while it is on screen (see rotateReviews)
+    const r = [...s.reviews];
+    for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; }
+    return `<section class="item story txt rv" data-story="${s.id}" data-light><div class="kick">${s.kick}</div>
+    <h2>${s.titleHTML}</h2>
+    <div class="rv-stack">${r.map(([f, alt], i) => `<img${i ? '' : ' class="on"'} alt="${esc(alt)}" data-src="clienti/${f}.jpg">`).join('')}</div>
+    <p class="rv-txt">${esc(s.text)}</p></section>`;
+  }
   if (s.terms) return `<section class="item story txt" data-story="${s.id}" data-light><img class="in-logo" src="brand/logo.png" alt="BabyMood"><div class="kick">${s.kick}</div>
     <h2>${s.titleHTML || esc(s.title)}</h2>
     <dl class="terms">${s.terms.map(([t, d]) => `<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join('')}</dl>${btn || ''}</section>`;
@@ -695,6 +720,15 @@ function story(s) {
     <div class="cap"><div class="brand">${s.kick}</div><h2 class="ttl">${esc(s.title)}</h2>
     <p class="st-txt">${esc(s.text)}</p>${btn || ''}</div></section>`;
 }
+
+// The customer-stories card moves to the next story every few seconds, only while it is the card on screen
+setInterval(() => {
+  const stack = $('#feed .rv.cur .rv-stack');
+  if (!stack) return;
+  const imgs = [...stack.children], i = imgs.findIndex(x => x.classList.contains('on'));
+  imgs[i].classList.remove('on');
+  imgs[(i + 1) % imgs.length].classList.add('on');
+}, 3200);
 
 // After the last product: the other collections (categories), each opening its own feed,
 // plus the way out: the whole grid from the main feed, the main feed from a category
