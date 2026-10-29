@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5eee4">
+<meta name="robots" content="noindex">
+<title>Colecția BabyMood Iarnă 2026</title>
+<meta name="description" content="Ajută-ne să alegem colecția BabyMood de iarnă: îți place sau nu, pentru fiecare model. Durează un minut.">
+<meta property="og:title" content="Alege cu noi colecția BabyMood de iarnă">
+<meta property="og:description" content="Îți place sau nu, pentru fiecare model. Durează un minut.">
+<meta property="og:image" content="https://go.babymood.md/winter2026/assets/03.jpg">
+<!-- Microsoft Clarity: same project as the storefront -->
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "yujba4qqq3");
+</script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&display=swap">
+<style>
+  /* the storefront's brand beige (index.html --b-*), with the survey's sage green for "like" */
+  :root {
+    --bg: #f5eee4; --ink: #2f2925; --mute: #7b6f63; --line: rgba(47,41,37,.12);
+    --card: #fff; --like: #6f9a7a; --nope: #c97b63;
+    --safe-t: env(safe-area-inset-top); --safe-b: env(safe-area-inset-bottom);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased; overscroll-behavior: none; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  .screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; }
+  .screen.on { display: flex; }
+  .serif { font: 400 min(34px, 8.6vw)/1.08 "Cormorant Garamond", Georgia, serif; letter-spacing: -.005em; }
+  .serif em { font-style: italic; }
+  .kick { font-size: 10.5px; font-weight: 500; letter-spacing: .34em; color: var(--mute); }
+  .btn { height: 48px; padding: 0 30px; border: 1px solid var(--ink); font-size: 11px; font-weight: 500; letter-spacing: .3em;
+    text-transform: uppercase; transition: background .2s, color .2s, opacity .2s; }
+  .btn:active { background: var(--ink); color: var(--bg); }
+  .btn:disabled { opacity: .35; }
+  .link { font-size: 13px; color: var(--mute); text-decoration: underline; text-underline-offset: 3px; padding: 8px; }
+
+  /* intro: like the storefront's opening card — the logo comes into focus, then the photo opens upwards */
+  #intro { padding: calc(var(--safe-t) + 34px) 0 calc(var(--safe-b) + 20px); text-align: center; overflow-y: auto; }
+  .in-logo { width: min(58%, 230px); height: auto; margin-bottom: 24px; animation: focus 1.1s cubic-bezier(.2,.7,.2,1) both; }
+  .in-photo { flex: 1 1 0; min-height: 120px; width: 100%; overflow: hidden; background: #e9dfd1; animation: open 1.3s cubic-bezier(.7,0,.2,1) .25s both; }
+  .in-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; animation: drift 16s cubic-bezier(.2,.6,.3,1) .25s both; }
+  #intro .kick { margin-top: 22px; animation: gather 1.4s cubic-bezier(.2,.7,.2,1) 1s both; }
+  #intro h1 { margin-top: 10px; padding: 0 20px; animation: up .9s ease-out 1.2s both; }
+  #intro p { margin-top: 10px; padding: 0 28px; font-size: 13.5px; line-height: 1.5; color: var(--mute); animation: up .9s ease-out 1.4s both; }
+  .name-form { margin-top: 18px; width: min(100% - 40px, 340px); display: grid; gap: 10px; animation: up .9s ease-out 1.6s both; }
+  .name-form input { height: 48px; border: 1px solid var(--line); background: #fffdf9; padding: 0 16px; font: inherit; font-size: 16px;
+    color: var(--ink); text-align: center; outline: none; border-radius: 0; -webkit-appearance: none; }
+  .name-form input:focus { border-color: var(--ink); }
+
+  /* the deck */
+  #swipe { padding: calc(var(--safe-t) + 12px) 16px calc(var(--safe-b) + 16px); }
+  .bar { width: 100%; max-width: 480px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .bar img { height: 18px; width: auto; }
+  .count { font-size: 12px; font-weight: 500; letter-spacing: .14em; color: var(--mute); font-variant-numeric: tabular-nums; }
+  .track { width: 100%; max-width: 480px; height: 2px; background: var(--line); margin-top: 12px; }
+  .track i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .35s ease; }
+  .deck { position: relative; flex: 1 1 0; width: 100%; max-width: 480px; margin-top: 14px; }
+  .card { position: absolute; inset: 0; border-radius: 18px; overflow: hidden; background: var(--card);
+    box-shadow: 0 10px 30px rgba(47,41,37,.12), 0 1px 3px rgba(47,41,37,.08); touch-action: none; user-select: none; -webkit-user-select: none;
+    will-change: transform; }
+  .card.next { transform: scale(.95) translateY(10px); transition: transform .3s ease; }
+  .card.back-in { transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+  /* the photo whole (flat lays must not be cropped), over a blurred copy of itself so the card is never empty */
+  .card .bgimg { position: absolute; inset: -20px; width: calc(100% + 40px); height: calc(100% + 40px); object-fit: cover; filter: blur(22px) saturate(.9); opacity: .55; }
+  .card .img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; -webkit-user-drag: none; }
+  .stamp { position: absolute; top: 26px; padding: 6px 12px; border: 3px solid; border-radius: 8px; font-size: 22px; font-weight: 800;
+    letter-spacing: .08em; opacity: 0; background: rgba(255,255,255,.75); pointer-events: none; }
+  .stamp.like { left: 22px; color: var(--like); transform: rotate(-14deg); }
+  .stamp.nope { right: 22px; color: var(--nope); transform: rotate(14deg); }
+  .actions { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 18px; }
+  .act { border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 4px 14px rgba(47,41,37,.12);
+    transition: transform .15s ease, opacity .2s; }
+  .act:active { transform: scale(.9); }
+  .act:disabled { opacity: .35; }
+  .act.big { width: 68px; height: 68px; }
+  .act.small { width: 48px; height: 48px; }
+  .act svg { display: block; }
+  .act.nope svg { stroke: var(--nope); }
+  .act.like svg { fill: var(--like); }
+  .act.undo svg { stroke: var(--mute); }
+  .hint { margin-top: 10px; font-size: 11.5px; color: var(--mute); letter-spacing: .02em; min-height: 1em; }
+
+  /* the end */
+  #done { padding: calc(var(--safe-t) + 40px) 20px calc(var(--safe-b) + 24px); text-align: center; overflow-y: auto; }
+  #done .in-logo { width: 120px; margin-bottom: 28px; }
+  #done h1 { margin-top: 12px; }
+  #done p { margin-top: 12px; font-size: 14px; line-height: 1.55; color: var(--mute); max-width: 340px; }
+  .liked { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; max-width: 360px; margin-top: 22px; }
+  .liked img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; background: #fff; }
+  .done-actions { margin-top: 24px; display: grid; justify-items: center; gap: 4px; }
+  .sync { margin-top: 14px; font-size: 12px; color: var(--mute); min-height: 1em; }
+
+  @keyframes focus { from { opacity: 0; filter: blur(8px); transform: translateY(6px); } }
+  @keyframes open { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0); } }
+  @keyframes drift { from { transform: scale(1.16) translateY(2%); } }
+  @keyframes gather { from { opacity: 0; letter-spacing: .8em; } }
+  @keyframes up { from { opacity: 0; transform: translateY(10px); } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+<section class="screen" id="intro">
+  <img class="in-logo" src="../brand/logo.png" alt="BabyMood">
+  <div class="in-photo"><img src="assets/14.jpg" alt="Fetiță în trening roșu și căciulă de blăniță" fetchpriority="high"></div>
+  <div class="kick">COLECȚIA IARNĂ 2026</div>
+  <h1 class="serif">Alege cu noi<br><em>ce aducem la iarnă.</em></h1>
+  <p>17 modele din Seoul. Glisează la dreapta ce îți place, la stânga ce nu. Durează un minut.</p>
+  <form class="name-form" id="nameForm" autocomplete="on">
+    <input id="nameInput" name="name" type="text" placeholder="Numele tău" maxlength="80" autocomplete="given-name" enterkeyhint="go" aria-label="Numele tău">
+    <button class="btn" id="startBtn" type="submit" disabled>Începe</button>
+  </form>
+</section>
+
+<section class="screen" id="swipe">
+  <div class="bar">
+    <img src="../brand/logo.png" alt="BabyMood">
+    <span class="count" id="count">1 / 17</span>
+  </div>
+  <div class="track"><i id="fill"></i></div>
+  <div class="deck" id="deck"></div>
+  <div class="actions">
+    <button class="act big nope" id="nopeBtn" aria-label="Nu-mi place">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button class="act small undo" id="undoBtn" aria-label="Înapoi">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg>
+    </button>
+    <button class="act big like" id="likeBtn" aria-label="Îmi place">
+      <svg width="30" height="30" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.4 2.8 4.5 6.6 4.5c2.2 0 3.8 1.3 5.4 3.2 1.6-1.9 3.2-3.2 5.4-3.2 3.8 0 5.7 3.9 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg>
+    </button>
+  </div>
+  <div class="hint" id="hint">Glisează sau apasă pe butoane</div>
+</section>
+
+<section class="screen" id="done">
+  <img class="in-logo" src="../brand/logo.png" alt="BabyMood">
+  <div class="kick">MULȚUMIM</div>
+  <h1 class="serif" id="doneTitle">Gata.</h1>
+  <p id="doneText"></p>
+  <div class="liked" id="liked"></div>
+  <div class="done-actions">
+    <button class="link" id="doneBack">Înapoi la ultimul model</button>
+  </div>
+  <div class="sync" id="sync"></div>
+</section>
+
+<script>
+(function () {
+  "use strict";
+
+  // Supabase: same project and publishable key as autumn2026/. The key can only call the RPC below,
+  // see ../../supabase/winter2026.sql
+  var SUPABASE_URL = "https://vgvbyphirxegrihrqxmr.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_OJVKx7_de_k-HtI6mJOMzQ_eUiMTKqc";
+  var RPC = "save_winter_survey_progress";
+  var STORAGE_KEY = "bm_winter_survey_2026";
+
+  // id = the photo number in assets/ and the key in the saved votes; label is for alt text only
+  var ITEMS = [
+    ["01", "Geci de puf, mentă și maro"],
+    ["02", "Bluze Love ‘N’ More"],
+    ["03", "Geci de puf cu glugă, culori pastel"],
+    ["04", "Pantaloni drepți"],
+    ["05", "Pantaloni din catifea reiată"],
+    ["06", "Jachete tricotate cu fermoar"],
+    ["07", "Bluze cu guler"],
+    ["08", "Rochie crem"],
+    ["09", "Fustă maro și bluză galbenă"],
+    ["10", "Căciuli tricotate"],
+    ["11", "Veste de blăniță"],
+    ["12", "Căciuli cu șnur"],
+    ["13", "Pulovere în dungi"],
+    ["14", "Trening roșu"],
+    ["15", "Seturi pufoase"],
+    ["16", "Geci de puf cu buline"],
+    ["17", "Bluză crem, fustă și colanți"]
+  ].map(function (a) { return { id: a[0], label: a[1], src: "assets/" + a[0] + ".jpg" }; });
+  var N = ITEMS.length;
+
+  /* ---------- state (kept in localStorage so a reload resumes where they left off) ---------- */
+  function uuid() {
+    return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(16) + Math.random().toString(16).slice(2);
+  }
+  function fresh() { return { sessionId: uuid(), name: "", index: 0, votes: {}, pending: false }; }
+  function load() {
+    try {
+      var s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (s && s.sessionId && typeof s.index === "number" && s.votes) return s;
+    } catch (e) {}
+    return fresh();
+  }
+  function store() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
+  // ?nou starts a new answer on the same phone (a second child, or testing)
+  if (/[?&]nou\b/.test(location.search)) {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    history.replaceState(null, "", location.pathname);
+  }
+  var state = load();
+
+  /* ---------- autosave: one request in flight, the latest state always wins ---------- */
+  var inFlight = false, again = false;
+  function sync() {
+    if (!state.name) return;
+    state.pending = true; store();
+    if (inFlight) { again = true; return; }
+    inFlight = true;
+    var body = {
+      p_session_id: state.sessionId,
+      p_name: state.name,
+      p_votes: state.votes,
+      p_current_index: state.index,
+      p_completed: state.index >= N
+    };
+    // a hung request must not block the queue: give up after 15 s and retry on the next change / reconnect
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 15000);
+    Promise.resolve().then(function () {
+      return fetch(SUPABASE_URL + "/rest/v1/rpc/" + RPC, {
+        method: "POST",
+        keepalive: true,
+        signal: ctrl ? ctrl.signal : undefined,
+        headers: { "Content-Type": "application/json", apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY },
+        body: JSON.stringify(body)
+      });
+    }).then(function (r) { return r.ok; }, function () { return false; }).then(function (ok) {
+      clearTimeout(timer);
+      inFlight = false;
+      if (again) { again = false; sync(); return; }
+      state.pending = !ok; store();
+      renderSync();
+      if (!ok) setTimeout(function () { if (state.pending && !inFlight) sync(); }, 8000);
+    });
+  }
+  window.addEventListener("online", function () { if (state.pending) sync(); });
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible" && state.pending) sync(); });
+
+  /* ---------- screens ---------- */
+  var $ = function (id) { return document.getElementById(id); };
+  function show(id) {
+    ["intro", "swipe", "done"].forEach(function (s) { $(s).classList.toggle("on", s === id); });
+  }
+
+  // intro: the name, then the deck
+  var nameInput = $("nameInput");
+  nameInput.value = state.name;
+  function nameOk() { return nameInput.value.trim().length >= 2; }
+  nameInput.addEventListener("input", function () { $("startBtn").disabled = !nameOk(); });
+  $("startBtn").disabled = !nameOk();
+  $("nameForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!nameOk()) return;
+    state.name = nameInput.value.trim().replace(/\s+/g, " ");
+    store();
+    nameInput.blur();
+    sync();
+    startDeck();
+  });
+
+  /* ---------- the deck ---------- */
+  var deck = $("deck");
+  var top = null;     // the card being swiped
+  var busy = false;   // a card is flying out / back in
+
+  function cardEl(item) {
+    var c = document.createElement("div");
+    c.className = "card";
+    c.innerHTML = '<img class="bgimg" alt="" aria-hidden="true"><img class="img" draggable="false">' +
+      '<div class="stamp like">ÎMI PLACE</div><div class="stamp nope">NU</div>';
+    c.querySelector(".bgimg").src = item.src;
+    var img = c.querySelector(".img");
+    img.src = item.src;
+    img.alt = item.label;
+    return c;
+  }
+
+  function renderDeck() {
+    deck.innerHTML = "";
+    top = null;
+    if (state.index < N) {
+      if (state.index + 1 < N) {
+        var under = cardEl(ITEMS[state.index + 1]);
+        under.classList.add("next");
+        deck.appendChild(under);
+      }
+      top = cardEl(ITEMS[state.index]);
+      deck.appendChild(top);
+      bindDrag(top);
+      // warm the cache for the card after the next one
+      if (state.index + 2 < N) new Image().src = ITEMS[state.index + 2].src;
+    }
+    $("count").textContent = Math.min(state.index + 1, N) + " / " + N;
+    $("fill").style.width = (state.index / N * 100) + "%";
+    $("undoBtn").disabled = state.index === 0;
+  }
+
+  function startDeck() {
+    if (state.index >= N) return finish();
+    show("swipe");
+    renderDeck();
+  }
+
+  function setStamps(card, dx) {
+    var p = Math.max(-1, Math.min(1, dx / 110));
+    card.querySelector(".stamp.like").style.opacity = Math.max(0, p);
+    card.querySelector(".stamp.nope").style.opacity = Math.max(0, -p);
+  }
+
+  function vote(v) {
+    if (busy || !top || state.index >= N) return;
+    busy = true;
+    var card = top, dir = v === "like" ? 1 : -1;
+    state.votes[ITEMS[state.index].id] = v;
+    state.index++;
+    store();
+    sync();
+    setStamps(card, dir * 110);
+    var w = deck.clientWidth;
+    card.style.transition = "transform .38s cubic-bezier(.3,.6,.4,1), opacity .38s";
+    card.style.transform = "translate(" + dir * (w * 1.4) + "px, " + (card._dy || 0) + "px) rotate(" + dir * 24 + "deg)";
+    card.style.opacity = "0";
+    var next = deck.querySelector(".card.next");
+    if (next) next.style.transform = "none";
+    setTimeout(function () {
+      busy = false;
+      if (state.index >= N) finish(); else renderDeck();
+    }, 340);
+  }
+
+  function undo() {
+    if (busy || state.index === 0) return;
+    busy = true;
+    state.index--;
+    var item = ITEMS[state.index];
+    var was = state.votes[item.id];
+    delete state.votes[item.id];
+    store();
+    sync();
+    show("swipe");
+    renderDeck();
+    // the card comes back from the side it left on
+    var dir = was === "like" ? 1 : -1;
+    top.style.transform = "translate(" + dir * deck.clientWidth * 1.3 + "px, 0) rotate(" + dir * 20 + "deg)";
+    top.getBoundingClientRect();
+    top.classList.add("back-in");
+    top.style.transform = "none";
+    setTimeout(function () { if (top) top.classList.remove("back-in"); busy = false; }, 360);
+  }
+
+  function bindDrag(card) {
+    var x0 = 0, y0 = 0, t0 = 0, dx = 0, dy = 0, id = null;
+    card.addEventListener("pointerdown", function (e) {
+      if (busy) return;
+      id = e.pointerId; x0 = e.clientX; y0 = e.clientY; t0 = Date.now(); dx = dy = 0;
+      card.setPointerCapture(id);
+      card.style.transition = "none";
+    });
+    card.addEventListener("pointermove", function (e) {
+      if (e.pointerId !== id) return;
+      dx = e.clientX - x0; dy = e.clientY - y0;
+      card.style.transform = "translate(" + dx + "px, " + dy * .4 + "px) rotate(" + dx / 18 + "deg)";
+      setStamps(card, dx);
+    });
+    function end(e) {
+      if (e.pointerId !== id) return;
+      id = null;
+      var speed = Math.abs(dx) / Math.max(1, Date.now() - t0);
+      if (Math.abs(dx) > deck.clientWidth * .28 || (Math.abs(dx) > 40 && speed > .6)) {
+        card._dy = dy * .4;
+        vote(dx > 0 ? "like" : "dislike");
+      } else {
+        card.style.transition = "transform .3s cubic-bezier(.2,.8,.2,1)";
+        card.style.transform = "none";
+        setStamps(card, 0);
+      }
+    }
+    card.addEventListener("pointerup", end);
+    card.addEventListener("pointercancel", end);
+  }
+
+  $("likeBtn").addEventListener("click", function () { vote("like"); });
+  $("nopeBtn").addEventListener("click", function () { vote("dislike"); });
+  $("undoBtn").addEventListener("click", undo);
+  $("doneBack").addEventListener("click", undo);
+  document.addEventListener("keydown", function (e) {
+    if (!$("swipe").classList.contains("on")) return;
+    if (e.key === "ArrowRight") vote("like");
+    else if (e.key === "ArrowLeft") vote("dislike");
+    else if (e.key === "Backspace" || (e.key === "z" && (e.metaKey || e.ctrlKey))) undo();
+  });
+
+  /* ---------- the end ---------- */
+  function finish() {
+    var liked = ITEMS.filter(function (it) { return state.votes[it.id] === "like"; });
+    $("doneTitle").innerHTML = "Mulțumim, " + escapeHTML(state.name.split(" ")[0]) + ".<br><em>Ne-ai ajutat mult.</em>";
+    $("doneText").textContent = liked.length
+      ? "Ți-au plăcut " + liked.length + " din " + N + " modele. Aducem ce aleg cele mai multe mame, și vă anunțăm pe Instagram când ajunge colecția."
+      : "Niciun model nu ți-a plăcut, și e un răspuns la fel de util. Ne ajută să nu aducem ce nu vă place.";
+    var grid = $("liked");
+    grid.innerHTML = "";
+    liked.forEach(function (it) {
+      var img = document.createElement("img");
+      img.src = it.src; img.alt = it.label; img.loading = "lazy";
+      grid.appendChild(img);
+    });
+    show("done");
+    renderSync();
+  }
+
+  function renderSync() {
+    $("sync").textContent = $("done").classList.contains("on") && state.pending
+      ? "Se salvează răspunsul… îl reîncercăm automat dacă nu e internet." : "";
+  }
+
+  function escapeHTML(s) {
+    return s.replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; });
+  }
+
+  /* ---------- start ---------- */
+  if (state.name) { startDeck(); if (state.pending) sync(); }
+  else show("intro");
+})();
+</script>
+</body>
+</html>
