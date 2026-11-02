@@ -14,7 +14,7 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ro_RO">
 <meta property="og:title" content="Alege cu noi colecția BabyMood de iarnă">
-<meta property="og:description" content="17 modele din Seoul: îți place sau nu, pentru fiecare. Durează un minut.">
+<meta property="og:description" content="Chestionarul s-a încheiat. Mulțumim tuturor mamelor care au ales cu noi.">
 <meta property="og:image" content="https://go.babymood.md/winter2026/og.jpg">
 <meta property="og:image:secure_url" content="https://go.babymood.md/winter2026/og.jpg">
 <meta property="og:image:type" content="image/jpeg">
@@ -23,7 +23,7 @@
 <meta property="og:image:alt" content="BabyMood, Colecția Iarnă 2026: fetiță în trening roșu și geci de puf pastel">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Alege cu noi colecția BabyMood de iarnă">
-<meta name="twitter:description" content="17 modele din Seoul: îți place sau nu, pentru fiecare. Durează un minut.">
+<meta name="twitter:description" content="Chestionarul s-a încheiat. Mulțumim tuturor mamelor care au ales cu noi.">
 <meta name="twitter:image" content="https://go.babymood.md/winter2026/og.jpg">
 <!-- Microsoft Clarity: same project as the storefront -->
 <script type="text/javascript">
@@ -114,6 +114,11 @@
   .liked { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; max-width: 360px; margin-top: 22px; }
   .liked img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; background: #fff; }
   .done-actions { margin-top: 24px; display: grid; justify-items: center; gap: 4px; }
+  /* closed: shown instead of the name form once the survey is over */
+  #closed { justify-content: center; padding: calc(var(--safe-t) + 24px) 20px calc(var(--safe-b) + 24px); text-align: center; overflow-y: auto; }
+  #closed h1 { margin-top: 12px; }
+  #closed p { margin-top: 12px; max-width: 320px; font-size: 14px; line-height: 1.55; color: var(--mute); }
+  #closed .btn { margin-top: 30px; display: inline-flex; align-items: center; text-decoration: none; }
   .sync { margin-top: 14px; font-size: 12px; color: var(--mute); min-height: 1em; }
 
   @keyframes focus { from { opacity: 0; filter: blur(8px); transform: translateY(6px); } }
@@ -157,6 +162,14 @@
   <div class="hint" id="hint">Glisează sau apasă pe butoane</div>
 </section>
 
+<section class="screen" id="closed">
+  <img class="in-logo" src="../brand/logo.png" alt="BabyMood">
+  <div class="kick">COLECȚIA IARNĂ 2026</div>
+  <h1 class="serif">Chestionarul<br><em>s-a încheiat.</em></h1>
+  <p>Mulțumim tuturor mamelor care au ales cu noi. Aducem modelele preferate și vă anunțăm pe Instagram când ajunge colecția.</p>
+  <a class="btn" href="https://www.instagram.com/babymood.md/">@babymood.md</a>
+</section>
+
 <section class="screen" id="done">
   <img class="in-logo" src="../brand/logo.png" alt="BabyMood">
   <div class="kick">MULȚUMIM</div>
@@ -179,6 +192,8 @@
   var SUPABASE_ANON_KEY = "sb_publishable_OJVKx7_de_k-HtI6mJOMzQ_eUiMTKqc";
   var RPC = "save_winter_survey_progress";
   var STORAGE_KEY = "bm_winter_survey_2026";
+  // closed on 2 Nov 2026: the page shows #closed and takes no new answers
+  var CLOSED = true;
 
   // id = the photo number in assets/ and the key in the saved votes; label is for alt text only
   var ITEMS = [
@@ -262,7 +277,7 @@
   /* ---------- screens ---------- */
   var $ = function (id) { return document.getElementById(id); };
   function show(id) {
-    ["intro", "swipe", "done"].forEach(function (s) { $(s).classList.toggle("on", s === id); });
+    ["intro", "swipe", "closed", "done"].forEach(function (s) { $(s).classList.toggle("on", s === id); });
   }
 
   // intro: the name, then the deck
@@ -447,7 +462,12 @@
   }
 
   /* ---------- start ---------- */
-  if (state.name) { startDeck(); if (state.pending) sync(); }
+  if (CLOSED) {
+    show("closed");
+    // an answer given before the close but not saved yet (no internet) is still sent
+    if (state.name && state.pending) sync();
+  }
+  else if (state.name) { startDeck(); if (state.pending) sync(); }
   else show("intro");
 })();
 </script>
